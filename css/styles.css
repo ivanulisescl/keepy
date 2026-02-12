@@ -262,6 +262,10 @@ html[data-theme="light"] .category-item{ background: rgba(255,255,255,.58); }
   box-shadow: 0 0 0 4px rgba(124,58,237,.16);
   flex: 0 0 auto;
 }
+.cat-dot-all{
+  background: var(--muted2);
+  box-shadow: 0 0 0 2px var(--border);
+}
 .cat-name{
   font-weight: 700;
   white-space: nowrap;

@@ -11,6 +11,8 @@ const {
 } = window.KeepyStorage;
 const { clampText, debounce, downloadJson, escapeHtml, isValidUrl, nowIso, parseYoutubeId, uid } = window.KeepyUtils;
 
+const ALL_CATEGORIES_ID = "cat_all";
+
 const el = {
   app: document.querySelector(".app"),
   btnTheme: document.getElementById("btnTheme"),
@@ -65,7 +67,7 @@ const el = {
 /** @type {{data: any, selectedCategoryId: string|null, selectedNoteId: string|null, search: string, filterType: string}} */
 const state = {
   data: loadData(),
-  selectedCategoryId: null,
+  selectedCategoryId: ALL_CATEGORIES_ID,
   selectedNoteId: null,
   search: "",
   filterType: "all",
@@ -116,21 +118,24 @@ function notesByCategory(categoryId) {
 }
 
 function computeCategoryCount(categoryId) {
+  if (categoryId === ALL_CATEGORIES_ID) return state.data.notes.length;
   return state.data.notes.reduce((acc, n) => (n.categoryId === categoryId ? acc + 1 : acc), 0);
 }
 
+function notesForCurrentCategory() {
+  if (state.selectedCategoryId === ALL_CATEGORIES_ID) return state.data.notes;
+  return notesByCategory(state.selectedCategoryId);
+}
+
 function ensureSelection() {
-  const hasCat = state.selectedCategoryId && getCategoryById(state.selectedCategoryId);
+  const isAll = state.selectedCategoryId === ALL_CATEGORIES_ID;
+  const hasCat = isAll || (state.selectedCategoryId && getCategoryById(state.selectedCategoryId));
   if (!hasCat) {
-    state.selectedCategoryId = state.data.categories[0]?.id ?? null;
+    state.selectedCategoryId = ALL_CATEGORIES_ID;
   }
-  if (state.selectedCategoryId) {
-    const notes = notesByCategory(state.selectedCategoryId);
-    const hasNote = state.selectedNoteId && getNoteById(state.selectedNoteId);
-    if (!hasNote) state.selectedNoteId = notes[0]?.id ?? null;
-  } else {
-    state.selectedNoteId = null;
-  }
+  const notes = notesForCurrentCategory();
+  const hasNote = state.selectedNoteId && getNoteById(state.selectedNoteId);
+  if (!hasNote) state.selectedNoteId = notes[0]?.id ?? null;
 }
 
 // ---------- Rendering ----------
@@ -152,6 +157,26 @@ function renderVersionPill() {
 
 function renderCategories() {
   el.categoryList.innerHTML = "";
+
+  const allBtn = document.createElement("button");
+  allBtn.className = `category-item category-item-all ${ALL_CATEGORIES_ID === state.selectedCategoryId ? "active" : ""}`;
+  allBtn.type = "button";
+  allBtn.dataset.catId = ALL_CATEGORIES_ID;
+  const allCount = state.data.notes.length;
+  allBtn.innerHTML = `
+    <div class="cat-left">
+      <span class="cat-dot cat-dot-all"></span>
+      <span class="cat-name">Todas</span>
+    </div>
+    <span class="cat-count">${allCount}</span>
+  `;
+  allBtn.addEventListener("click", () => {
+    state.selectedCategoryId = ALL_CATEGORIES_ID;
+    state.selectedNoteId = null;
+    if (window.innerWidth <= 780) closeSidebar();
+    render();
+  });
+  el.categoryList.appendChild(allBtn);
 
   for (const c of state.data.categories) {
     const btn = document.createElement("button");
@@ -180,7 +205,13 @@ function renderCategories() {
 }
 
 function renderNotesHeader() {
-  const cat = state.selectedCategoryId ? getCategoryById(state.selectedCategoryId) : null;
+  if (state.selectedCategoryId === ALL_CATEGORIES_ID) {
+    el.notesTitle.textContent = "Todas";
+    el.notesSubtitle.textContent = `${state.data.notes.length} notas en todas las categorías`;
+    el.btnAddNote.disabled = true;
+    return;
+  }
+  const cat = getCategoryById(state.selectedCategoryId);
   el.notesTitle.textContent = cat ? cat.name : "Notas";
   el.notesSubtitle.textContent = cat ? `${computeCategoryCount(cat.id)} notas` : "Selecciona una categoría";
   el.btnAddNote.disabled = !cat;
@@ -197,8 +228,8 @@ function renderNotes() {
   const q = state.search.trim().toLowerCase();
   const typeFilter = state.filterType;
 
-  const notes = state.data.notes
-    .filter((n) => n.categoryId === catId)
+  const baseNotes = catId === ALL_CATEGORIES_ID ? state.data.notes : state.data.notes.filter((n) => n.categoryId === catId);
+  const notes = baseNotes
     .filter((n) => (typeFilter === "all" ? true : n.type === typeFilter))
     .filter((n) => {
       if (!q) return true;
@@ -213,7 +244,8 @@ function renderNotes() {
     });
 
   if (!notes.length) {
-    el.notesList.innerHTML = `<div class="empty-state"><div><div class="empty-title">Nada por aquí</div><div class="empty-text">Crea una nota para esta categoría.</div></div></div>`;
+    const emptyText = catId === ALL_CATEGORIES_ID ? "Usa el buscador o elige una categoría para crear una nota." : "Crea una nota para esta categoría.";
+    el.notesList.innerHTML = `<div class="empty-state"><div><div class="empty-title">Nada por aquí</div><div class="empty-text">${emptyText}</div></div></div>`;
     return;
   }
 
@@ -984,8 +1016,8 @@ el.btnSync.addEventListener("click", () => {
 
 // ---------- Boot ----------
 initTheme();
-// First render
-state.selectedCategoryId = state.data.categories[0]?.id ?? null;
+// First render (Todas por defecto)
+state.selectedCategoryId = ALL_CATEGORIES_ID;
 render();
 
 // Exponer para debug rápido (opcional)
