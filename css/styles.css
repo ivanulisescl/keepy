@@ -31,7 +31,11 @@ html[data-theme="light"]{
 }
 
 *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html{ height: 100%; }
+html{
+  height: 100%;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
 body{
   margin: 0;
   min-height: 100%;
@@ -62,8 +66,8 @@ body{
   gap: var(--gap);
   padding: var(--gap);
   width: 100%;
-  max-width: 100vw;
-  overflow-x: hidden;
+  max-width: 100%;
+  overflow: hidden;
   word-break: break-word;
   overflow-wrap: break-word;
 }
@@ -554,86 +558,113 @@ button, .btn, .icon-btn{ touch-action: manipulation; }
   .desktop-label{ display:none; }
   .mobile-label{ display:inline; }
 
+  /* ---- Flujo natural: la página entera hace scroll ---- */
+  html, body{
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
   .app{
+    display: flex;
+    flex-direction: column;
     min-height: 100vh;
     min-height: 100dvh;
     height: auto;
-    max-width: 100vw;
-    padding: calc(var(--gap) + env(safe-area-inset-top))
-             calc(var(--gap) + env(safe-area-inset-right))
-             calc(var(--gap) + env(safe-area-inset-bottom))
-             calc(var(--gap) + env(safe-area-inset-left));
+    overflow: visible;
+    padding: 10px;
+    padding: calc(10px + env(safe-area-inset-top, 0px))
+             calc(10px + env(safe-area-inset-right, 0px))
+             calc(10px + env(safe-area-inset-bottom, 0px))
+             calc(10px + env(safe-area-inset-left, 0px));
+    gap: 10px;
+    width: 100%;
+    max-width: 100%;
   }
 
   /* -- Topbar -- */
   .topbar{
     flex-wrap: wrap;
     align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    max-width: 100%;
+    gap: 8px;
+    padding: 10px;
+    width: 100%;
+    flex-shrink: 0;
   }
   .brand{
     min-width: 0;
     flex: 1 1 auto;
-    gap: 10px;
+    gap: 8px;
   }
-  .wordmark{ font-size: 28px; }
-  .wordmark-card{ padding: 8px 12px; border-radius: 12px; }
+  .wordmark{ font-size: 26px; }
+  .wordmark-card{ padding: 6px 10px; border-radius: 12px; }
   .app-sub{ display: none; }
   .brand-meta{ display: none; }
 
   .top-actions{
     flex: 1 1 100%;
     width: 100%;
-    justify-content: stretch;
     gap: 8px;
   }
   .search{
     flex: 1 1 auto;
-    max-width: 100%;
-    width: 0;
-    padding: 9px 12px;
-    gap: 8px;
+    min-width: 0;
+    max-width: none;
+    width: auto;
+    padding: 8px 10px;
+    gap: 6px;
   }
   .search input{
-    font-size: 16px;
+    font-size: 16px !important;
     -webkit-appearance: none;
     appearance: none;
   }
   #btnTheme.icon-btn{
-    flex: 0 0 42px;
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
   }
 
-  /* -- Layout principal -- */
+  /* -- Layout: columna única, crece con contenido -- */
   .layout{
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
     max-width: 100%;
+    overflow: visible;
   }
 
-  /* -- Sidebar drawer -- */
+  /* -- Sidebar: drawer fuera del flujo -- */
   .sidebar{
     position: fixed;
     z-index: 50;
     top: 10px;
     bottom: 10px;
     left: 10px;
-    width: min(300px, calc(100vw - 20px));
+    width: min(280px, calc(100vw - 20px));
     transform: translateX(calc(-100% - 20px));
     transition: transform .18s ease;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
   .sidebar.open{ transform: translateX(0); }
 
-  /* -- Paneles -- */
+  /* -- Paneles: sin scroll interno, el body hace scroll -- */
   .panel{
-    overflow: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible !important;
+    min-height: auto;
+    height: auto;
+    flex-shrink: 0;
+    width: 100%;
     max-width: 100%;
   }
-  .panel.notes, .panel.editor{ display:flex; }
-  .panel.editor{ display:none; }
-  .app.mobile-editor .panel.notes{ display:none; }
-  .app.mobile-editor .panel.editor{ display:flex; }
+  .panel.notes, .panel.editor{ display: flex; }
+  .panel.editor{ display: none; }
+  .app.mobile-editor .panel.notes{ display: none; }
+  .app.mobile-editor .panel.editor{ display: flex; }
 
   .panel-header{
     flex-wrap: wrap;
@@ -645,18 +676,27 @@ button, .btn, .icon-btn{ touch-action: manipulation; }
     justify-content: space-between;
   }
 
-  /* -- Inputs: font-size ≥ 16px previene zoom en iOS -- */
-  .field input,
-  .field textarea,
-  .field select,
-  .select select,
-  .dialog-card input,
-  .dialog-card textarea,
-  .dialog-card select{
-    font-size: 16px;
-    -webkit-appearance: none;
-    appearance: none;
+  /* -- Listas y editor: sin scroll interno -- */
+  .notes-list{
+    overflow: visible;
+    max-height: none;
+    width: 100%;
+    padding: 10px;
+  }
+  .editor-body{
+    overflow: visible;
+    max-height: none;
+    height: auto;
+  }
+
+  /* -- Inputs: font-size 16px OBLIGA al navegador a no hacer zoom -- */
+  input, textarea, select{
+    font-size: 16px !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
     touch-action: manipulation;
+    -webkit-user-select: auto;
+    user-select: auto;
   }
 
   /* -- Footer (bottombar) -- */
@@ -665,13 +705,15 @@ button, .btn, .icon-btn{ touch-action: manipulation; }
     align-items: stretch;
     gap: 8px;
     padding: 10px;
+    width: 100%;
     max-width: 100%;
+    flex-shrink: 0;
   }
   .bottombar-left,
   .bottombar-right{
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    gap: 6px;
     width: 100%;
   }
   .bottombar-left > .version-pill{
@@ -680,8 +722,8 @@ button, .btn, .icon-btn{ touch-action: manipulation; }
   }
   .bottombar .btn{
     width: 100%;
-    padding: 9px 8px;
-    font-size: 12px;
+    padding: 8px 6px;
+    font-size: 11px;
     text-align: center;
     white-space: nowrap;
     overflow: hidden;
@@ -689,9 +731,12 @@ button, .btn, .icon-btn{ touch-action: manipulation; }
   }
 
   /* -- Diálogos -- */
+  .dialog{
+    max-width: calc(100vw - 20px);
+  }
   .dialog-card{
     min-width: 0;
-    width: calc(100vw - 28px);
+    width: calc(100vw - 32px);
     max-width: 460px;
   }
 
@@ -699,20 +744,20 @@ button, .btn, .icon-btn{ touch-action: manipulation; }
   .editor-grid{ grid-template-columns: 1fr; }
 
   /* -- Notas compactas -- */
-  .notes-list{ max-width: 100%; }
-  .note-card{ padding: 10px; border-radius: 14px; max-width: 100%; }
+  .note-card{ padding: 10px; border-radius: 14px; }
   .note-media img{ height: 120px; }
+
+  /* -- Empty state no necesita 100% height en mobile -- */
+  .empty-state{ height: auto; min-height: 200px; }
 }
 
 /* ===== Pantallas muy pequeñas (≤420) ===== */
 @media (max-width: 420px){
-  .wordmark{ font-size: 24px; }
-  .wordmark-card{ padding: 6px 10px; }
-  .icon-btn{ width: 38px; height: 38px; border-radius: 12px; }
-  .search{ padding: 8px 10px; }
-  /* Mantener 16px mínimo para evitar zoom en iOS */
-  .search input{ font-size: 16px; }
-  .bottombar .btn{ font-size: 11px; padding: 8px 6px; }
+  .wordmark{ font-size: 22px; }
+  .wordmark-card{ padding: 5px 8px; }
+  .icon-btn{ width: 36px; height: 36px; border-radius: 10px; }
+  .search{ padding: 7px 8px; }
+  .bottombar .btn{ font-size: 10px; padding: 7px 4px; }
 }
 
 @media (prefers-reduced-motion: reduce){

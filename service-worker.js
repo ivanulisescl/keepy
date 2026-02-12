@@ -1,5 +1,5 @@
-/* Keepy - Service Worker (cache básico) */
-const CACHE_VERSION = "keepy-v2";
+/* Keepy - Service Worker v3 (network-first para todo) */
+const CACHE_VERSION = "keepy-v3";
 const PRECACHE_URLS = [
   "./",
   "./index.html",
@@ -13,64 +13,56 @@ const PRECACHE_URLS = [
 ];
 
 self.addEventListener("install", (event) => {
+  self.skipWaiting(); // Forzar activación inmediata
   event.waitUntil(
-    (async () => {
-      const cache = await caches.open(CACHE_VERSION);
-      await cache.addAll(PRECACHE_URLS);
-      self.skipWaiting();
-    })(),
+    caches.open(CACHE_VERSION).then((cache) => cache.addAll(PRECACHE_URLS)),
   );
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
+      // Borrar TODAS las cachés antiguas
       const keys = await caches.keys();
       await Promise.all(keys.map((k) => (k === CACHE_VERSION ? null : caches.delete(k))));
-      self.clients.claim();
+      // Tomar control inmediato de todas las pestañas
+      await self.clients.claim();
     })(),
   );
 });
 
-// Estrategia: cache-first para assets; network-first para navegación.
+// Estrategia: NETWORK-FIRST para TODO.
+// Siempre intenta descargar la versión más reciente.
+// Solo usa caché si no hay red (offline).
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
 
-  const url = new URL(req.url);
-  const isSameOrigin = url.origin === self.location.origin;
-
-  // Navegación (HTML): network-first, fallback a cache
-  if (req.mode === "navigate") {
-    event.respondWith(
-      (async () => {
-        try {
-          const fresh = await fetch(req);
+  event.respondWith(
+    (async () => {
+      try {
+        const fresh = await fetch(req);
+        // Guardar copia en caché para offline
+        if (fresh.ok) {
           const cache = await caches.open(CACHE_VERSION);
-          cache.put("./index.html", fresh.clone());
-          return fresh;
-        } catch {
-          const cache = await caches.open(CACHE_VERSION);
-          const cached = await cache.match("./index.html");
-          return cached || new Response("Offline", { status: 503, headers: { "Content-Type": "text/plain; charset=utf-8" } });
+          cache.put(req, fresh.clone());
         }
-      })(),
-    );
-    return;
-  }
-
-  // Assets: cache-first (solo mismo origen)
-  if (isSameOrigin) {
-    event.respondWith(
-      (async () => {
+        return fresh;
+      } catch {
+        // Sin red: usar caché
         const cache = await caches.open(CACHE_VERSION);
         const cached = await cache.match(req);
         if (cached) return cached;
-        const fresh = await fetch(req);
-        cache.put(req, fresh.clone());
-        return fresh;
-      })(),
-    );
-  }
+        // Fallback para navegación
+        if (req.mode === "navigate") {
+          const indexCached = await cache.match("./index.html");
+          if (indexCached) return indexCached;
+        }
+        return new Response("Offline", {
+          status: 503,
+          headers: { "Content-Type": "text/plain; charset=utf-8" },
+        });
+      }
+    })(),
+  );
 });
-

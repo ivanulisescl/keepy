@@ -912,10 +912,36 @@ window.__KEEPY__ = { state, STORAGE_KEY };
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", async () => {
     try {
-      await navigator.serviceWorker.register("./service-worker.js");
+      const reg = await navigator.serviceWorker.register("./service-worker.js");
+      // Forzar actualización inmediata del SW
+      reg.update();
     } catch {
       // En file:// o entornos no soportados puede fallar; no bloquea la app.
     }
   });
 }
+
+// Workaround iOS/Android PWA: ajustar altura visible cuando el teclado se abre
+if (window.visualViewport) {
+  const vv = window.visualViewport;
+  const adjustHeight = () => {
+    document.documentElement.style.setProperty("--vvh", vv.height + "px");
+  };
+  vv.addEventListener("resize", adjustHeight);
+  adjustHeight();
+}
+
+// Fix: en algunos WebView de PWA, los inputs no reciben focus al primer tap.
+// Forzamos focus explícito en cada input/textarea al hacer click.
+document.addEventListener("click", (e) => {
+  const tag = e.target.tagName;
+  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") {
+    // Pequeño delay para evitar conflictos con el evento nativo
+    setTimeout(() => {
+      if (document.activeElement !== e.target) {
+        e.target.focus();
+      }
+    }, 50);
+  }
+}, true);
 
