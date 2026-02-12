@@ -9,7 +9,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./icon-192.png?v=3" />
     <link rel="apple-touch-icon" href="./icon-192.png?v=3" />
-    <link rel="stylesheet" href="./css/styles.css?v=0.6.2" />
+    <link rel="stylesheet" href="./css/styles.css?v=0.6.3" />
   </head>
   <body>
     <div class="app">
@@ -70,6 +70,10 @@
             </div>
           </div>
           <div class="category-list" id="categoryList"></div>
+          <div class="context-menu" id="categoryContextMenu" hidden role="menu" aria-label="Opciones de categoría">
+            <button type="button" class="context-menu-item" data-action="edit">Editar</button>
+            <button type="button" class="context-menu-item context-menu-item-danger" data-action="delete">Eliminar</button>
+          </div>
           <div class="sidebar-footer">
             <div class="muted small">Todo se guarda localmente en tu equipo.</div>
           </div>
@@ -128,7 +132,7 @@
 
     <dialog class="dialog" id="categoryDialog">
       <form method="dialog" class="dialog-card" id="categoryForm">
-        <div class="dialog-title">Nueva categoría</div>
+        <div class="dialog-title" id="categoryDialogTitle">Nueva categoría</div>
         <label class="field">
           <span>Nombre</span>
           <input id="categoryName" required minlength="1" maxlength="40" placeholder="Ej: Películas" />
@@ -152,7 +156,7 @@
         </div>
         <div class="dialog-actions">
           <button class="btn subtle" value="cancel" formnovalidate>Cancelar</button>
-          <button class="btn primary" value="ok">Crear</button>
+          <button class="btn primary" id="categoryDialogSubmit" value="ok">Crear</button>
         </div>
       </form>
     </dialog>
@@ -215,8 +219,8 @@
       </form>
     </dialog>
 
-    <script defer src="./js/utils.js?v=0.6.2"></script>
-    <script defer src="./js/storage.js?v=0.6.2"></script>
-    <script defer src="./js/main.js?v=0.6.2"></script>
+    <script defer src="./js/utils.js?v=0.6.3"></script>
+    <script defer src="./js/storage.js?v=0.6.3"></script>
+    <script defer src="./js/main.js?v=0.6.3"></script>
   </body>
 </html>

@@ -23,8 +23,11 @@ const el = {
   btnAddCategory: document.getElementById("btnAddCategory"),
   categoryDialog: document.getElementById("categoryDialog"),
   categoryForm: document.getElementById("categoryForm"),
+  categoryDialogTitle: document.getElementById("categoryDialogTitle"),
+  categoryDialogSubmit: document.getElementById("categoryDialogSubmit"),
   categoryName: document.getElementById("categoryName"),
   colorPalette: document.getElementById("colorPalette"),
+  categoryContextMenu: document.getElementById("categoryContextMenu"),
 
   notesTitle: document.getElementById("notesTitle"),
   notesSubtitle: document.getElementById("notesSubtitle"),
@@ -64,7 +67,10 @@ const el = {
   toast: document.getElementById("toast"),
 };
 
-/** @type {{data: any, selectedCategoryId: string|null, selectedNoteId: string|null, search: string, filterType: string}} */
+/** @type {string|null} Id de categoría en edición; null = nueva categoría */
+let editingCategoryId = null;
+
+/** @type {{ data: any, selectedCategoryId: string|null, selectedNoteId: string|null, search: string, filterType: string }} */
 const state = {
   data: loadData(),
   selectedCategoryId: ALL_CATEGORIES_ID,
@@ -179,28 +185,65 @@ function renderCategories() {
   el.categoryList.appendChild(allBtn);
 
   for (const c of state.data.categories) {
-    const btn = document.createElement("button");
-    btn.className = `category-item ${c.id === state.selectedCategoryId ? "active" : ""}`;
-    btn.type = "button";
-    btn.dataset.catId = c.id;
+    const row = document.createElement("div");
+    row.className = `category-item ${c.id === state.selectedCategoryId ? "active" : ""}`;
+    row.dataset.catId = c.id;
+    row.setAttribute("role", "button");
+    row.setAttribute("tabindex", "0");
     const count = computeCategoryCount(c.id);
-    btn.innerHTML = `
+    const color = c.color || "#7C3AED";
+    row.innerHTML = `
       <div class="cat-left">
-        <span class="cat-dot" style="background:${escapeHtml(c.color || "#7C3AED")}; box-shadow: 0 0 0 4px ${hexToRgba(
-      c.color || "#7C3AED",
-      0.16,
-    )}"></span>
+        <span class="cat-dot" style="background:${escapeHtml(color)}; box-shadow: 0 0 0 4px ${hexToRgba(color, 0.16)}"></span>
         <span class="cat-name">${escapeHtml(c.name)}</span>
       </div>
       <span class="cat-count">${count}</span>
     `;
-    btn.addEventListener("click", () => {
+
+    let longPressTimer = null;
+    let contextMenuOpened = false;
+
+    const clearLongPress = () => {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+    };
+
+    row.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0) return;
+      contextMenuOpened = false;
+      longPressTimer = setTimeout(() => {
+        longPressTimer = null;
+        contextMenuOpened = true;
+        showCategoryContextMenu(c, row);
+      }, 500);
+    });
+    row.addEventListener("pointerup", clearLongPress);
+    row.addEventListener("pointerleave", clearLongPress);
+    row.addEventListener("pointercancel", clearLongPress);
+
+    row.addEventListener("click", (e) => {
+      if (contextMenuOpened) {
+        contextMenuOpened = false;
+        return;
+      }
       state.selectedCategoryId = c.id;
       state.selectedNoteId = null;
       if (window.innerWidth <= 780) closeSidebar();
       render();
     });
-    el.categoryList.appendChild(btn);
+    row.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        state.selectedCategoryId = c.id;
+        state.selectedNoteId = null;
+        if (window.innerWidth <= 780) closeSidebar();
+        render();
+      }
+    });
+
+    el.categoryList.appendChild(row);
   }
 }
 
@@ -589,11 +632,30 @@ function closeSidebar() {
 }
 
 function openCategoryDialog() {
+  editingCategoryId = null;
+  el.categoryDialogTitle.textContent = "Nueva categoría";
+  el.categoryDialogSubmit.textContent = "Crear";
   el.categoryName.value = "";
-  // Reset paleta: seleccionar el primer color (morado)
   el.colorPalette.querySelectorAll(".color-swatch").forEach((s, i) => {
     s.classList.toggle("active", i === 0);
   });
+  el.categoryDialog.showModal();
+  setTimeout(() => el.categoryName.focus(), 0);
+}
+
+function openEditCategoryDialog(cat) {
+  editingCategoryId = cat.id;
+  el.categoryDialogTitle.textContent = "Editar categoría";
+  el.categoryDialogSubmit.textContent = "Guardar";
+  el.categoryName.value = cat.name || "";
+  const color = (cat.color || "#7C3AED").toLowerCase();
+  let found = false;
+  el.colorPalette.querySelectorAll(".color-swatch").forEach((s) => {
+    const match = (s.dataset.color || "").toLowerCase() === color;
+    if (match) found = true;
+    s.classList.toggle("active", match);
+  });
+  if (!found) el.colorPalette.querySelector(".color-swatch").classList.add("active");
   el.categoryDialog.showModal();
   setTimeout(() => el.categoryName.focus(), 0);
 }
@@ -614,6 +676,68 @@ function createCategory({ name, color }) {
   state.selectedNoteId = null;
   render();
   showToast("Categoría creada.");
+}
+
+function updateCategory(id, { name, color }) {
+  const cat = state.data.categories.find((c) => c.id === id);
+  if (!cat) return;
+  cat.name = (name || "").trim();
+  cat.color = color || cat.color || "#7C3AED";
+  cat.updatedAt = nowIso();
+  setData(state.data);
+  render();
+  showToast("Categoría actualizada.");
+}
+
+async function confirmDeleteCategory(cat) {
+  const count = computeCategoryCount(cat.id);
+  el.confirmTitle.textContent = "Eliminar categoría";
+  el.confirmText.textContent =
+    count > 0
+      ? `¿Eliminar «${escapeHtml(cat.name)}»? Se eliminarán también las ${count} notas que contiene.`
+      : `¿Eliminar la categoría «${escapeHtml(cat.name)}»?`;
+  el.confirmDialog.showModal();
+  const result = await waitDialogResult(el.confirmDialog);
+  if (result !== "ok") return;
+  deleteCategory(cat.id);
+}
+
+function deleteCategory(id) {
+  state.data.categories = state.data.categories.filter((c) => c.id !== id);
+  state.data.notes = state.data.notes.filter((n) => n.categoryId !== id);
+  if (state.selectedCategoryId === id) {
+    state.selectedCategoryId = ALL_CATEGORIES_ID;
+    state.selectedNoteId = null;
+  }
+  setData(state.data);
+  render();
+  showToast("Categoría eliminada.");
+}
+
+function showCategoryContextMenu(cat, rowEl) {
+  const menu = el.categoryContextMenu;
+  const rect = rowEl.getBoundingClientRect();
+  menu.style.left = `${rect.left}px`;
+  menu.style.top = `${rect.bottom + 4}px`;
+  menu.hidden = false;
+
+  const closeMenu = () => {
+    menu.hidden = true;
+    document.removeEventListener("click", closeMenu);
+  };
+
+  setTimeout(() => document.addEventListener("click", closeMenu), 0);
+
+  menu.querySelector('[data-action="edit"]').onclick = (e) => {
+    e.stopPropagation();
+    closeMenu();
+    openEditCategoryDialog(cat);
+  };
+  menu.querySelector('[data-action="delete"]').onclick = (e) => {
+    e.stopPropagation();
+    closeMenu();
+    confirmDeleteCategory(cat);
+  };
 }
 
 function openNoteTypeDialog() {
@@ -965,7 +1089,12 @@ el.categoryDialog.addEventListener("close", () => {
   if (!name) return;
   const activeSwatch = el.colorPalette.querySelector(".color-swatch.active");
   const color = activeSwatch ? activeSwatch.dataset.color : "#7C3AED";
-  createCategory({ name, color });
+  if (editingCategoryId) {
+    updateCategory(editingCategoryId, { name, color });
+    editingCategoryId = null;
+  } else {
+    createCategory({ name, color });
+  }
 });
 
 el.btnAddNote.addEventListener("click", openNoteTypeDialog);
