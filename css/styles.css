@@ -181,8 +181,12 @@ html[data-theme="light"] .btn{ background: rgba(255,255,255,.65); }
   background: linear-gradient(135deg, rgba(124,58,237,.92), rgba(59,130,246,.75));
   color: #fff;
 }
+html[data-theme="light"] .btn.primary{
+  background: linear-gradient(135deg, rgba(124,58,237,.92), rgba(59,130,246,.75));
+}
 .btn.subtle{ background: transparent; }
 .btn.danger{ border-color: rgba(239,68,68,.45); background: rgba(239,68,68,.12); }
+html[data-theme="light"] .btn.danger{ background: rgba(239,68,68,.12); }
 
 .btn.file{ position: relative; overflow:hidden; }
 .btn.file input{
