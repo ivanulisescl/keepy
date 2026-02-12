@@ -35,6 +35,7 @@ const el = {
   filterType: document.getElementById("filterType"),
   searchInput: document.getElementById("searchInput"),
 
+  editorTitle: document.getElementById("editorTitle"),
   editorSubtitle: document.getElementById("editorSubtitle"),
   editorBody: document.getElementById("editorBody"),
   btnDeleteNote: document.getElementById("btnDeleteNote"),
@@ -250,6 +251,7 @@ function renderEditor() {
   el.btnPinNote.disabled = !note;
 
   if (!note) {
+    el.editorTitle.textContent = "Detalle";
     el.editorSubtitle.textContent = "Selecciona una nota";
     el.editorBody.innerHTML = `
       <div class="empty-state">
@@ -262,6 +264,8 @@ function renderEditor() {
     return;
   }
 
+  const titleText = note.title?.trim() || typeLabelOf(note.type);
+  el.editorTitle.textContent = titleText;
   el.editorSubtitle.textContent = `${typeLabelOf(note.type)} • Última edición: ${formatShortDate(
     note.updatedAt || note.createdAt,
   )}`;
@@ -321,6 +325,9 @@ function buildYoutubeEditor(note) {
           <textarea id="edContent" placeholder="¿Qué quieres recordar?">${escapeHtml(note.content || "")}</textarea>
         </label>
       </div>
+      <div class="editor-open-link">
+        <button type="button" class="btn primary" id="btnOpenUrl">Abrir en YouTube</button>
+      </div>
       <div class="preview-row">
         ${
           thumb
@@ -345,6 +352,9 @@ function buildLinkEditor(note) {
           <span>Descripción</span>
           <textarea id="edContent" placeholder="Resumen / por qué lo guardas…">${escapeHtml(note.content || "")}</textarea>
         </label>
+      </div>
+      <div class="editor-open-link">
+        <button type="button" class="btn primary" id="btnOpenUrl">Abrir enlace</button>
       </div>
       <div class="hint">${url ? `Dominio: ${escapeHtml(safeHostname(url))}` : "Tip: pega cualquier enlace (artículo, tienda, etc.)"}</div>
     </div>
@@ -460,6 +470,22 @@ function wireEditorEvents(note) {
       saveDebounced();
       // refresca editor (miniatura y dominio)
       renderEditor();
+    });
+  }
+
+  const btnOpenUrl = document.getElementById("btnOpenUrl");
+  if (btnOpenUrl && edUrl) {
+    btnOpenUrl.addEventListener("click", () => {
+      const url = edUrl.value.trim();
+      if (!url) {
+        showToast("Escribe una URL primero.");
+        return;
+      }
+      if (!isValidUrl(url)) {
+        showToast("URL no válida.");
+        return;
+      }
+      window.open(url, "_blank", "noopener,noreferrer");
     });
   }
 

@@ -298,7 +298,7 @@ html[data-theme="light"] .category-item{ background: rgba(255,255,255,.58); }
   border-bottom: 1px solid var(--border);
 }
 .panel-title-wrap{ min-width: 0; }
-.panel-title{ font-weight: 820; letter-spacing: .2px; }
+.panel-title{ font-weight: 820; letter-spacing: .2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .panel-sub{ color: var(--muted); font-size: 12px; margin-top: 2px; }
 .panel-actions{ display:flex; align-items:center; gap: 10px; flex-wrap: wrap; justify-content:flex-end; }
 
@@ -438,6 +438,7 @@ html[data-theme="light"] .field input,
 html[data-theme="light"] .field textarea,
 html[data-theme="light"] .field select{ background: rgba(255,255,255,.70); }
 .field textarea{ min-height: 160px; resize: vertical; line-height: 1.45; }
+.editor-open-link{ margin-top: 12px; }
 .hint{ color: var(--muted); font-size: 12px; margin-top: 10px; }
 
 .preview-row{
