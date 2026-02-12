@@ -1,5 +1,5 @@
 /* Keepy - Service Worker (network-first, actualizar en cada despliegue) */
-const CACHE_VERSION = "keepy-v5";
+const CACHE_VERSION = "keepy-v6";
 const PRECACHE_URLS = [
   "./",
   "./index.html",
