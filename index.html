@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#0b0d12" />
+    <title>Keepy</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icon-192.png" />
+    <link rel="apple-touch-icon" href="./icon-192.png" />
+    <link rel="stylesheet" href="./css/styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand">
+          <button class="icon-btn mobile-only" id="btnOpenSidebar" aria-label="Abrir categorías" title="Categorías">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+          <div class="brand-title">
+            <div class="wordmark-card" aria-label="Keepy">
+              <div class="wordmark">Keepy</div>
+            </div>
+            <div class="brand-meta">
+              <div class="app-sub">Notas ordenadas, rápido.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="top-actions">
+          <label class="search">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 18a7.5 7.5 0 1 1 5.3-12.8A7.5 7.5 0 0 1 10.5 18Zm10 3-5.2-5.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <input id="searchInput" type="search" placeholder="Buscar en tus notas…" autocomplete="off" />
+          </label>
+
+          <button class="icon-btn" id="btnTheme" aria-label="Cambiar tema" title="Claro / oscuro">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Zm0-16v2m0 16v2m10-10h-2M4 12H2m17.07-7.07-1.41 1.41M8.34 17.66l-1.41 1.41m0-12.72 1.41 1.41m10.32 10.32 1.41 1.41" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="layout">
+        <aside class="sidebar" id="sidebar" aria-label="Categorías">
+          <div class="sidebar-header">
+            <div class="sidebar-title">Categorías</div>
+            <div class="sidebar-actions">
+              <button class="btn" id="btnAddCategory">Nueva</button>
+              <button class="icon-btn mobile-only" id="btnCloseSidebar" aria-label="Cerrar categorías" title="Cerrar">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="category-list" id="categoryList"></div>
+          <div class="sidebar-footer">
+            <div class="muted small">Todo se guarda localmente en tu equipo.</div>
+          </div>
+        </aside>
+
+        <section class="panel notes" aria-label="Notas">
+          <div class="panel-header">
+            <div class="panel-title-wrap">
+              <div class="panel-title" id="notesTitle">Notas</div>
+              <div class="panel-sub" id="notesSubtitle">Selecciona una categoría</div>
+            </div>
+
+            <div class="panel-actions">
+              <label class="select">
+                <span class="sr-only">Tipo</span>
+                <select id="filterType">
+                  <option value="all">Todos</option>
+                  <option value="youtube">YouTube</option>
+                  <option value="link">Enlace</option>
+                  <option value="quote">Frase</option>
+                  <option value="text">Texto</option>
+                  <option value="image">Imagen</option>
+                </select>
+              </label>
+              <button class="btn primary" id="btnAddNote" disabled>Nueva nota</button>
+            </div>
+          </div>
+          <div class="notes-list" id="notesList"></div>
+        </section>
+
+        <section class="panel editor" aria-label="Detalle de nota">
+          <div class="panel-header">
+            <div class="panel-title-wrap">
+              <div class="panel-title">Detalle</div>
+              <div class="panel-sub" id="editorSubtitle">Selecciona una nota</div>
+            </div>
+            <div class="panel-actions">
+              <button class="btn subtle mobile-only" id="btnBackToList">Volver</button>
+              <button class="btn subtle" id="btnPinNote" disabled>Fijar</button>
+              <button class="btn danger" id="btnDeleteNote" disabled>Eliminar</button>
+            </div>
+          </div>
+
+          <div class="editor-body" id="editorBody">
+            <div class="empty-state">
+              <div class="empty-title">Nada seleccionado</div>
+              <div class="empty-text">Elige una categoría y crea tu primera nota.</div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="bottombar">
+        <div class="bottombar-left">
+          <button class="btn subtle" id="btnExport">Exportar JSON</button>
+          <label class="btn subtle file">
+            Importar JSON
+            <input id="fileImport" type="file" accept="application/json" />
+          </label>
+          <div class="version-pill" id="appVersion" aria-label="Versión de Keepy"></div>
+        </div>
+        <div class="bottombar-right">
+          <button class="btn subtle" id="btnSyncIfNew">Sync si hay nueva versión</button>
+          <button class="btn" id="btnSync">Sync desde GitHub (reemplazar)</button>
+        </div>
+      </footer>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <dialog class="dialog" id="categoryDialog">
+      <form method="dialog" class="dialog-card" id="categoryForm">
+        <div class="dialog-title">Nueva categoría</div>
+        <label class="field">
+          <span>Nombre</span>
+          <input id="categoryName" required minlength="1" maxlength="40" placeholder="Ej: Películas" />
+        </label>
+        <label class="field">
+          <span>Color</span>
+          <input id="categoryColor" type="color" value="#7C3AED" />
+        </label>
+        <div class="dialog-actions">
+          <button class="btn subtle" value="cancel">Cancelar</button>
+          <button class="btn primary" value="ok">Crear</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="dialog" id="confirmDialog">
+      <form method="dialog" class="dialog-card" id="confirmForm">
+        <div class="dialog-title" id="confirmTitle">Confirmar</div>
+        <div class="dialog-text" id="confirmText">¿Seguro?</div>
+        <div class="dialog-actions">
+          <button class="btn subtle" value="cancel">Cancelar</button>
+          <button class="btn danger" value="ok">Eliminar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="dialog" id="noteTypeDialog">
+      <form method="dialog" class="dialog-card" id="noteTypeForm">
+        <div class="dialog-title">Nueva nota</div>
+        <label class="field">
+          <span>Tipo</span>
+          <select id="noteTypeSelect">
+            <option value="youtube">YouTube</option>
+            <option value="link">Enlace</option>
+            <option value="quote">Frase</option>
+            <option value="text">Texto</option>
+            <option value="image">Imagen</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Título (opcional)</span>
+          <input id="noteTitleInput" maxlength="80" placeholder="Ej: Ideas para ver" />
+        </label>
+        <div class="dialog-actions">
+          <button class="btn subtle" value="cancel">Cancelar</button>
+          <button class="btn primary" value="ok">Crear</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="dialog" id="syncDialog">
+      <form method="dialog" class="dialog-card" id="syncForm">
+        <div class="dialog-title">Sync desde GitHub</div>
+        <div class="dialog-text">
+          Esta acción <strong>reemplaza</strong> tus datos locales por el contenido del JSON del repositorio.
+        </div>
+        <label class="field">
+          <span>URL RAW del JSON</span>
+          <input
+            id="syncUrl"
+            type="url"
+            required
+            spellcheck="false"
+            value="https://raw.githubusercontent.com/ivanulisescl/keepy/main/keepy.backup.json"
+          />
+        </label>
+        <div class="dialog-actions">
+          <button class="btn subtle" value="cancel">Cancelar</button>
+          <button class="btn primary" value="ok">Reemplazar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script defer src="./js/utils.js"></script>
+    <script defer src="./js/storage.js"></script>
+    <script defer src="./js/main.js"></script>
+  </body>
+</html>
