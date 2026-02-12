@@ -9,7 +9,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./icon-192.png" />
     <link rel="apple-touch-icon" href="./icon-192.png" />
-    <link rel="stylesheet" href="./css/styles.css?v=0.4.1" />
+    <link rel="stylesheet" href="./css/styles.css?v=0.5.0" />
   </head>
   <body>
     <div class="app">
@@ -37,6 +37,24 @@
           <button class="icon-btn" id="btnTheme" aria-label="Cambiar tema" title="Claro / oscuro">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Zm0-16v2m0 16v2m10-10h-2M4 12H2m17.07-7.07-1.41 1.41M8.34 17.66l-1.41 1.41m0-12.72 1.41 1.41m10.32 10.32 1.41 1.41" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
           </button>
+
+          <div class="settings-wrap" id="settingsWrap">
+            <button class="icon-btn" id="btnSettings" aria-label="Ajustes" title="Ajustes">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <div class="settings-menu" id="settingsMenu">
+              <button class="settings-item" id="btnExport">Exportar JSON</button>
+              <label class="settings-item file-item">
+                Importar JSON
+                <input id="fileImport" type="file" accept="application/json" />
+              </label>
+              <div class="settings-divider"></div>
+              <button class="settings-item" id="btnSyncIfNew">Sync si nueva versión</button>
+              <button class="settings-item" id="btnSync">Sync desde GitHub</button>
+              <div class="settings-divider"></div>
+              <div class="settings-version" id="appVersion"></div>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -104,30 +122,6 @@
         </section>
       </main>
 
-      <footer class="bottombar">
-        <div class="bottombar-left">
-          <button class="btn subtle" id="btnExport">
-            <span class="desktop-label">Exportar JSON</span>
-            <span class="mobile-label">Exportar</span>
-          </button>
-          <label class="btn subtle file">
-            <span class="desktop-label">Importar JSON</span>
-            <span class="mobile-label">Importar</span>
-            <input id="fileImport" type="file" accept="application/json" />
-          </label>
-          <div class="version-pill" id="appVersion" aria-label="Versión de Keepy"></div>
-        </div>
-        <div class="bottombar-right">
-          <button class="btn subtle" id="btnSyncIfNew">
-            <span class="desktop-label">Sync si hay nueva versión</span>
-            <span class="mobile-label">Sync nuevo</span>
-          </button>
-          <button class="btn" id="btnSync">
-            <span class="desktop-label">Sync desde GitHub (reemplazar)</span>
-            <span class="mobile-label">Sync GitHub</span>
-          </button>
-        </div>
-      </footer>
     </div>
 
     <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
@@ -208,8 +202,8 @@
       </form>
     </dialog>
 
-    <script defer src="./js/utils.js?v=0.4.0"></script>
-    <script defer src="./js/storage.js?v=0.4.0"></script>
-    <script defer src="./js/main.js?v=0.4.0"></script>
+    <script defer src="./js/utils.js?v=0.5.0"></script>
+    <script defer src="./js/storage.js?v=0.5.0"></script>
+    <script defer src="./js/main.js?v=0.5.0"></script>
   </body>
 </html>

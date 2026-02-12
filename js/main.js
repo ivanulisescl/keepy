@@ -46,6 +46,9 @@ const el = {
   confirmText: document.getElementById("confirmText"),
   confirmForm: document.getElementById("confirmForm"),
 
+  btnSettings: document.getElementById("btnSettings"),
+  settingsMenu: document.getElementById("settingsMenu"),
+  settingsWrap: document.getElementById("settingsWrap"),
   btnExport: document.getElementById("btnExport"),
   fileImport: document.getElementById("fileImport"),
   appVersion: document.getElementById("appVersion"),
@@ -838,20 +841,40 @@ function fileToDataUrl(file) {
   });
 }
 
+// ---------- Settings menu ----------
+function toggleSettings() {
+  el.settingsMenu.classList.toggle("open");
+}
+function closeSettings() {
+  el.settingsMenu.classList.remove("open");
+}
+
 // ---------- Events ----------
 el.btnTheme.addEventListener("click", toggleTheme);
+
+el.btnSettings.addEventListener("click", (e) => {
+  e.stopPropagation();
+  toggleSettings();
+});
+el.settingsWrap.addEventListener("click", (e) => {
+  e.stopPropagation();
+});
 
 el.btnOpenSidebar.addEventListener("click", openSidebar);
 el.btnCloseSidebar.addEventListener("click", closeSidebar);
 el.sidebar.addEventListener("click", (e) => {
-  // Evita que el click burbujee al body en móvil
   e.stopPropagation();
 });
 document.addEventListener("click", (e) => {
+  // Cerrar sidebar en móvil
   if (window.innerWidth <= 780 && el.sidebar.classList.contains("open")) {
     const inside = el.sidebar.contains(e.target);
     const opener = el.btnOpenSidebar.contains(e.target);
     if (!inside && !opener) closeSidebar();
+  }
+  // Cerrar settings menu
+  if (el.settingsMenu.classList.contains("open")) {
+    if (!el.settingsWrap.contains(e.target)) closeSettings();
   }
 });
 
@@ -888,16 +911,26 @@ el.btnBackToList.addEventListener("click", () => {
   el.app.classList.remove("mobile-editor");
 });
 
-el.btnExport.addEventListener("click", exportBackup);
+el.btnExport.addEventListener("click", () => {
+  exportBackup();
+  closeSettings();
+});
 el.fileImport.addEventListener("change", async () => {
   const file = el.fileImport.files?.[0];
   if (!file) return;
   await importBackupFromFile(file);
   el.fileImport.value = "";
+  closeSettings();
 });
 
-el.btnSyncIfNew.addEventListener("click", syncIfNewerFromGithub);
-el.btnSync.addEventListener("click", openSyncDialog);
+el.btnSyncIfNew.addEventListener("click", () => {
+  closeSettings();
+  syncIfNewerFromGithub();
+});
+el.btnSync.addEventListener("click", () => {
+  closeSettings();
+  openSyncDialog();
+});
 
 // ---------- Boot ----------
 initTheme();
