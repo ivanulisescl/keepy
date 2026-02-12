@@ -405,6 +405,8 @@ html[data-theme="light"] .note-card{ background: rgba(255,255,255,.58); }
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+.note-preview:empty{ display: none; }
+
 .note-media{
   margin-top: 10px;
   border: 1px solid var(--border);
@@ -550,6 +552,12 @@ html[data-theme="light"] .field select{ background: rgba(255,255,255,.70); }
 }
 .settings-item:hover{
   background: rgba(124,58,237,.10);
+}
+.settings-item-danger{
+  color: var(--danger);
+}
+.settings-item-danger:hover{
+  background: rgba(239,68,68,.12);
 }
 .settings-item.file-item{
   position: relative;

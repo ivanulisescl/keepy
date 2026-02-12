@@ -61,6 +61,7 @@ const el = {
   appVersion: document.getElementById("appVersion"),
   btnSync: document.getElementById("btnSync"),
   btnSyncIfNew: document.getElementById("btnSyncIfNew"),
+  btnDeleteAllNotes: document.getElementById("btnDeleteAllNotes"),
   syncDialog: document.getElementById("syncDialog"),
   syncForm: document.getElementById("syncForm"),
   syncUrl: document.getElementById("syncUrl"),
@@ -837,6 +838,36 @@ function exportBackup() {
   showToast("Exportado: keepy.backup.json");
 }
 
+async function confirmDeleteAllNotes() {
+  el.confirmTitle.textContent = "Eliminar todo";
+  el.confirmText.textContent =
+    "¿Estás seguro? Se exportará primero una copia de seguridad (keepy.backup.json) y después se borrarán todas las notas y todas las categorías.";
+  el.confirmDialog.showModal();
+  const result = await waitDialogResult(el.confirmDialog);
+  if (result !== "ok") return;
+
+  exportBackup();
+  const ts = nowIso();
+  state.data.notes = [];
+  state.data.categories = [
+    {
+      id: "cat_general",
+      name: "General",
+      color: "#7C3AED",
+      icon: "bookmark",
+      createdAt: ts,
+      updatedAt: ts,
+    },
+  ];
+  state.data.updatedAt = ts;
+  setData(state.data);
+  state.selectedCategoryId = ALL_CATEGORIES_ID;
+  state.selectedNoteId = null;
+  render();
+  closeSettings();
+  showToast("Todo eliminado. Se ha guardado una copia.");
+}
+
 async function importBackupFromFile(file) {
   const text = await file.text();
   let parsed = null;
@@ -1024,7 +1055,7 @@ function buildNotePreviewText(note) {
     const alt = note.image?.alt?.trim() ? note.image.alt.trim() : "";
     return alt ? clampText(alt, 160) : "Imagen";
   }
-  if (note.type === "simple") return (note.title || "").trim() || "Sin título";
+  if (note.type === "simple") return ""; // El título ya se muestra en la tarjeta
   return clampText(note.content || "", 160);
 }
 
@@ -1194,6 +1225,9 @@ el.btnSyncIfNew.addEventListener("click", () => {
 el.btnSync.addEventListener("click", () => {
   closeSettings();
   openSyncDialog();
+});
+el.btnDeleteAllNotes.addEventListener("click", () => {
+  confirmDeleteAllNotes();
 });
 
 // ---------- Boot ----------
