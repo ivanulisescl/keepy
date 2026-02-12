@@ -686,7 +686,7 @@ async function syncFromGithubRaw(url) {
   }
   try {
     showToast("Descargando JSON…");
-    const res = await fetch(url, { cache: "no-store" });
+    const res = await fetchWithTimeout(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const parsed = await res.json();
     const valid = validateDataShape(parsed);
@@ -704,15 +704,21 @@ async function syncFromGithubRaw(url) {
   }
 }
 
+function fetchWithTimeout(url, ms = 15000) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { cache: "no-store", signal: ctrl.signal }).finally(() => clearTimeout(t));
+}
+
 async function syncIfNewerFromGithub() {
-  const url = (loadSyncUrl && loadSyncUrl()) || el.syncUrl?.value || "https://raw.githubusercontent.com/ivanulisescl/keepy/main/keepy.backup.json";
-  if (!isValidUrl(url)) {
+  const url = (loadSyncUrl && loadSyncUrl()) || (el.syncUrl && el.syncUrl.value) || "https://raw.githubusercontent.com/ivanulisescl/keepy/main/keepy.backup.json";
+  if (!url || !isValidUrl(url)) {
     showToast("URL de sync inválida.");
     return;
   }
   try {
     showToast("Revisando versión en repo…");
-    const res = await fetch(url, { cache: "no-store" });
+    const res = await fetchWithTimeout(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const parsed = await res.json();
     const valid = validateDataShape(parsed);
@@ -738,15 +744,23 @@ async function syncIfNewerFromGithub() {
       return;
     }
 
-    // Reemplazar por la nueva versión del repo
     if (url) saveSyncUrl(url);
     setData(valid);
     state.selectedCategoryId = null;
     state.selectedNoteId = null;
     render();
-    showToast(`Actualizado desde repo (v${valid.appVersion || "?"}).`);
+
+    // En PWA instalada, forzar recarga para cargar código nuevo y evitar caché vieja
+    showToast("Datos actualizados. Recargando aplicación…");
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.getRegistration().then((reg) => {
+        if (reg) reg.update();
+      });
+    }
+    setTimeout(() => window.location.reload(), 1800);
   } catch (e) {
-    showToast(`Error revisión: ${String(e.message || e)}`);
+    const msg = e.name === "AbortError" ? "Tiempo de espera agotado" : String(e.message || e);
+    showToast(`Error: ${msg}`);
   }
 }
 
@@ -961,7 +975,7 @@ el.fileImport.addEventListener("change", async () => {
 
 el.btnSyncIfNew.addEventListener("click", () => {
   closeSettings();
-  syncIfNewerFromGithub();
+  syncIfNewerFromGithub().catch(() => {});
 });
 el.btnSync.addEventListener("click", () => {
   closeSettings();
