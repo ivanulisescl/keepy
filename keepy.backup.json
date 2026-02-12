@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "appVersion": "0.5.9",
+  "appVersion": "0.6.0",
   "updatedAt": "2026-02-12T12:00:00.000Z",
   "categories": [
     {"id": "cat_general", "name": "General", "color": "#7C3AED", "icon": "bookmark", "createdAt": "2026-02-12T00:00:00.000Z", "updatedAt": "2026-02-12T00:00:00.000Z"},
