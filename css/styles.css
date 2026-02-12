@@ -705,16 +705,17 @@ button, .btn, .icon-btn{ touch-action: manipulation; }
     height: 40px;
   }
 
-  /* -- Layout: columna única, crece con contenido -- */
+  /* -- Layout: altura para que el panel quepa (iOS Safari) -- */
   .layout{
     display: flex;
     flex-direction: column;
     gap: 10px;
     flex: 1;
-    min-height: 0;
+    min-height: calc(100vh - 140px);
+    min-height: calc(100dvh - 140px);
     width: 100%;
     max-width: 100%;
-    overflow: visible;
+    overflow: hidden;
   }
 
   /* -- Sidebar: drawer fuera del flujo -- */
@@ -732,12 +733,14 @@ button, .btn, .icon-btn{ touch-action: manipulation; }
   }
   .sidebar.open{ transform: translateX(0); }
 
-  /* -- Paneles: cabecera fija, lista con scroll -- */
+  /* -- Paneles: en iOS Safari flex:1 1 0 da altura 0; usamos altura explícita -- */
   .panel{
     width: 100%;
     max-width: 100%;
-    min-height: 0;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
+    min-height: 0;
   }
   .panel.notes, .panel.editor{ display: flex; }
   .panel.editor{ display: none; }
@@ -755,19 +758,26 @@ button, .btn, .icon-btn{ touch-action: manipulation; }
     justify-content: space-between;
   }
 
+  /* Altura explícita para evitar bug iOS Safari (flex da 0px) */
   .notes-list{
-    flex: 1 1 0;
-    min-height: 0;
+    height: calc(100vh - 200px);
+    height: calc(100dvh - 200px);
+    min-height: 240px;
     overflow-y: auto;
+    overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     padding: 10px;
     width: 100%;
+    flex: none;
   }
   .editor-body{
-    flex: 1 1 0;
-    min-height: 0;
+    height: calc(100vh - 180px);
+    height: calc(100dvh - 180px);
+    min-height: 200px;
     overflow-y: auto;
+    overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
+    flex: none;
   }
 
   /* -- Inputs: font-size 16px OBLIGA al navegador a no hacer zoom -- */
