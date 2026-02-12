@@ -537,3 +537,77 @@ html[data-theme="light"] .version-pill{ background: rgba(255,255,255,.45); }
 @media (prefers-reduced-motion: reduce){
   *{ transition: none !important; }
 }
+/* --- Mobile polish: evitar ancho extra y mejorar top/bottom bars --- */
+html, body { width: 100%; }
+body { overflow-x: hidden; }
+
+.topbar, .bottombar, .layout { min-width: 0; }
+.brand, .brand-title, .top-actions, .search { min-width: 0; }
+
+.search { min-width: 0; }
+.search input { min-width: 0; }
+
+@media (max-width: 780px){
+  /* Más aire y safe-area */
+  .app{
+    padding: calc(var(--gap) + env(safe-area-inset-top)) 
+             calc(var(--gap) + env(safe-area-inset-right))
+             calc(var(--gap) + env(safe-area-inset-bottom))
+             calc(var(--gap) + env(safe-area-inset-left));
+  }
+
+  /* Topbar: que envuelva y el buscador quede bien */
+  .topbar{
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .brand{
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+  .top-actions{
+    flex: 1 1 100%;
+    width: 100%;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .search{
+    flex: 1 1 auto;
+    max-width: none;
+    width: 100%;
+  }
+  #btnTheme.icon-btn{
+    flex: 0 0 auto;
+  }
+
+  /* Footer: apilar y que no se rompa */
+  .bottombar{
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .bottombar-left,
+  .bottombar-right{
+    width: 100%;
+    justify-content: stretch;
+  }
+  .bottombar-left > .btn,
+  .bottombar-right > .btn,
+  .bottombar-left > label.btn{
+    width: 100%;
+  }
+
+  /* Botones un poco más compactos en móvil */
+  .btn{
+    padding: 10px 12px;
+    border-radius: 14px;
+  }
+}
+
+@media (max-width: 420px){
+  /* Aún más compacto en pantallas pequeñas */
+  .wordmark{ font-size: 30px; }
+  .search{ padding: 9px 10px; }
+  .icon-btn{ width: 40px; height: 40px; }
+}
