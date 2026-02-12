@@ -12,6 +12,7 @@ const {
 const { clampText, debounce, downloadJson, escapeHtml, isValidUrl, nowIso, parseYoutubeId, uid } = window.KeepyUtils;
 
 const ALL_CATEGORIES_ID = "cat_all";
+const NOTE_TYPES = ["youtube", "link", "quote", "text", "image", "list"];
 
 const el = {
   app: document.querySelector(".app"),
@@ -363,8 +364,7 @@ function buildEditorHtml(note) {
         <label class="field">
           <span>Tipo</span>
           <select id="edType">
-            ${["youtube", "link", "quote", "text", "image"]
-              .map((t) => `<option value="${t}" ${t === note.type ? "selected" : ""}>${escapeHtml(typeLabelOf(t))}</option>`)
+            ${NOTE_TYPES.map((t) => `<option value="${t}" ${t === note.type ? "selected" : ""}>${escapeHtml(typeLabelOf(t))}</option>`)
               .join("")}
           </select>
         </label>
@@ -383,6 +383,7 @@ function buildTypeEditor(note) {
   if (note.type === "quote") return buildQuoteEditor(note);
   if (note.type === "text") return buildTextEditor(note);
   if (note.type === "image") return buildImageEditor(note);
+  if (note.type === "list") return buildListEditor(note);
   return `<div class="editor-card"><div class="empty-text">Tipo no soportado.</div></div>`;
 }
 
@@ -476,6 +477,22 @@ function buildTextEditor(note) {
   `;
 }
 
+function buildListEditor(note) {
+  const listHtml = contentToListHtml(note.content || "");
+  return `
+    <div class="editor-card">
+      <div class="editor-grid single">
+        <label class="field">
+          <span>Elementos del listado</span>
+          <textarea id="edContent" placeholder="Una línea por elemento. Cada línea se mostrará con viñeta.">${escapeHtml(note.content || "")}</textarea>
+        </label>
+      </div>
+      <div class="hint">Vista previa:</div>
+      <div id="listPreview" class="list-preview">${listHtml}</div>
+    </div>
+  `;
+}
+
 function buildImageEditor(note) {
   const src = note.image?.src || "";
   const alt = note.image?.alt || "";
@@ -530,7 +547,7 @@ function wireEditorEvents(note) {
       // Limpiar campos específicos para evitar basura cruzada
       if (note.type !== "image") delete note.image;
       if (note.type !== "quote") delete note.author;
-      if (note.type === "text") {
+      if (note.type === "text" || note.type === "list") {
         delete note.url;
       }
       setData(state.data);
@@ -572,6 +589,10 @@ function wireEditorEvents(note) {
       note.content = edContent.value;
       note.updatedAt = nowIso();
       saveDebounced();
+      if (note.type === "list") {
+        const prev = document.getElementById("listPreview");
+        if (prev) prev.innerHTML = contentToListHtml(edContent.value);
+      }
     });
   }
 
@@ -948,9 +969,21 @@ function typeLabelOf(type) {
       return "Texto";
     case "image":
       return "Imagen";
+    case "list":
+      return "Listado";
     default:
       return "Nota";
   }
+}
+
+/** Convierte contenido de listado (líneas) en HTML <ul> con viñetas */
+function contentToListHtml(content) {
+  const lines = (content || "")
+    .split(/\r?\n/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (lines.length === 0) return '<span class="muted">Aún no hay elementos.</span>';
+  return `<ul class="note-list-preview">${lines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>`;
 }
 
 function buildNotePreviewText(note) {
@@ -970,6 +1003,10 @@ function buildNotePreviewText(note) {
     return note.author ? `“${q}” — ${note.author}` : `“${q}”`;
   }
   if (note.type === "text") return clampText(note.content || "", 170) || "Texto vacío";
+  if (note.type === "list") {
+    const lines = (note.content || "").split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+    return lines.length ? lines.slice(0, 5).map((l) => `• ${l}`).join(" ") : "Listado vacío";
+  }
   if (note.type === "image") {
     const alt = note.image?.alt?.trim() ? note.image.alt.trim() : "";
     return alt ? clampText(alt, 160) : "Imagen";

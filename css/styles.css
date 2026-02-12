@@ -477,6 +477,16 @@ html[data-theme="light"] .field select{ background: rgba(255,255,255,.70); }
 .editor-open-link{ margin-top: 12px; }
 .hint{ color: var(--muted); font-size: 12px; margin-top: 10px; }
 
+.list-preview{ margin-top: 8px; }
+.note-list-preview{
+  margin: 0;
+  padding-left: 1.25em;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.note-list-preview li{ margin-bottom: 4px; }
+
 .preview-row{
   margin-top: 12px;
   display:grid;
