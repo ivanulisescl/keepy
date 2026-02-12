@@ -565,6 +565,10 @@ html[data-theme="light"] .field select{ background: rgba(255,255,255,.70); }
   padding: 14px;
   min-width: min(460px, calc(100vw - 28px));
   max-width: calc(100vw - 28px);
+  max-height: calc(100vh - 40px);
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   box-shadow: var(--shadow);
   word-break: break-word;
   overflow-wrap: break-word;
@@ -576,6 +580,11 @@ html[data-theme="light"] .field select{ background: rgba(255,255,255,.70); }
   justify-content:flex-end;
   gap: 10px;
   margin-top: 12px;
+  position: sticky;
+  bottom: 0;
+  padding-top: 10px;
+  background: var(--panel-solid);
+  z-index: 1;
 }
 
 /* ===== Global anti-overflow ===== */
