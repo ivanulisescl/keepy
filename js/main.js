@@ -252,12 +252,14 @@ function renderNotesHeader() {
     el.notesTitle.textContent = "Todas";
     el.notesSubtitle.textContent = `${state.data.notes.length} notas en todas las categorías`;
     el.btnAddNote.disabled = true;
+    el.btnAddNote.classList.add("hidden");
     return;
   }
   const cat = getCategoryById(state.selectedCategoryId);
   el.notesTitle.textContent = cat ? cat.name : "Notas";
   el.notesSubtitle.textContent = cat ? `${computeCategoryCount(cat.id)} notas` : "Selecciona una categoría";
   el.btnAddNote.disabled = !cat;
+  el.btnAddNote.classList.remove("hidden");
 }
 
 function renderNotes() {
