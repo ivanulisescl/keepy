@@ -287,8 +287,7 @@ html[data-theme="light"] .category-item{ background: rgba(255,255,255,.58); }
   min-height: 0;
   display:flex;
   flex-direction:column;
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
 }
 .panel-header{
   display:flex;
@@ -315,8 +314,11 @@ html[data-theme="light"] .category-item{ background: rgba(255,255,255,.58); }
 html[data-theme="light"] .select select{ background: rgba(255,255,255,.65); }
 
 .notes-list{
+  flex: 1 1 0;
+  min-height: 0;
   padding: 12px;
-  overflow:auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   display:flex;
   flex-direction:column;
   gap: 10px;
@@ -730,14 +732,12 @@ button, .btn, .icon-btn{ touch-action: manipulation; }
   }
   .sidebar.open{ transform: translateX(0); }
 
-  /* -- Paneles: sin scroll interno, el body hace scroll -- */
+  /* -- Paneles: cabecera fija, lista con scroll -- */
   .panel{
-    overflow: visible !important;
-    min-height: auto;
-    height: auto;
-    flex-shrink: 0;
     width: 100%;
     max-width: 100%;
+    min-height: 0;
+    overflow: hidden;
   }
   .panel.notes, .panel.editor{ display: flex; }
   .panel.editor{ display: none; }
@@ -748,23 +748,26 @@ button, .btn, .icon-btn{ touch-action: manipulation; }
     flex-wrap: wrap;
     gap: 8px;
     padding: 10px;
+    flex-shrink: 0;
   }
   .panel-actions{
     flex: 1 1 100%;
     justify-content: space-between;
   }
 
-  /* -- Listas y editor: sin scroll interno -- */
   .notes-list{
-    overflow: visible;
-    max-height: none;
-    width: 100%;
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     padding: 10px;
+    width: 100%;
   }
   .editor-body{
-    overflow: visible;
-    max-height: none;
-    height: auto;
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* -- Inputs: font-size 16px OBLIGA al navegador a no hacer zoom -- */
