@@ -22,7 +22,7 @@ const el = {
   categoryDialog: document.getElementById("categoryDialog"),
   categoryForm: document.getElementById("categoryForm"),
   categoryName: document.getElementById("categoryName"),
-  categoryColor: document.getElementById("categoryColor"),
+  colorPalette: document.getElementById("colorPalette"),
 
   notesTitle: document.getElementById("notesTitle"),
   notesSubtitle: document.getElementById("notesSubtitle"),
@@ -533,7 +533,10 @@ function closeSidebar() {
 
 function openCategoryDialog() {
   el.categoryName.value = "";
-  el.categoryColor.value = "#7C3AED";
+  // Reset paleta: seleccionar el primer color (morado)
+  el.colorPalette.querySelectorAll(".color-swatch").forEach((s, i) => {
+    s.classList.toggle("active", i === 0);
+  });
   el.categoryDialog.showModal();
   setTimeout(() => el.categoryName.focus(), 0);
 }
@@ -879,11 +882,19 @@ document.addEventListener("click", (e) => {
 });
 
 el.btnAddCategory.addEventListener("click", openCategoryDialog);
+el.colorPalette.addEventListener("click", (e) => {
+  const swatch = e.target.closest(".color-swatch");
+  if (!swatch) return;
+  el.colorPalette.querySelectorAll(".color-swatch").forEach((s) => s.classList.remove("active"));
+  swatch.classList.add("active");
+});
 el.categoryDialog.addEventListener("close", () => {
   if (el.categoryDialog.returnValue !== "ok") return;
   const name = el.categoryName.value.trim();
   if (!name) return;
-  createCategory({ name, color: el.categoryColor.value });
+  const activeSwatch = el.colorPalette.querySelector(".color-swatch.active");
+  const color = activeSwatch ? activeSwatch.dataset.color : "#7C3AED";
+  createCategory({ name, color });
 });
 
 el.btnAddNote.addEventListener("click", openNoteTypeDialog);

@@ -133,10 +133,23 @@
           <span>Nombre</span>
           <input id="categoryName" required minlength="1" maxlength="40" placeholder="Ej: Películas" />
         </label>
-        <label class="field">
+        <div class="field">
           <span>Color</span>
-          <input id="categoryColor" type="color" value="#7C3AED" />
-        </label>
+          <div class="color-palette" id="colorPalette">
+            <button type="button" class="color-swatch active" data-color="#7C3AED" style="background:#7C3AED" aria-label="Morado"></button>
+            <button type="button" class="color-swatch" data-color="#3B82F6" style="background:#3B82F6" aria-label="Azul"></button>
+            <button type="button" class="color-swatch" data-color="#06B6D4" style="background:#06B6D4" aria-label="Cian"></button>
+            <button type="button" class="color-swatch" data-color="#22C55E" style="background:#22C55E" aria-label="Verde"></button>
+            <button type="button" class="color-swatch" data-color="#EAB308" style="background:#EAB308" aria-label="Amarillo"></button>
+            <button type="button" class="color-swatch" data-color="#F97316" style="background:#F97316" aria-label="Naranja"></button>
+            <button type="button" class="color-swatch" data-color="#EF4444" style="background:#EF4444" aria-label="Rojo"></button>
+            <button type="button" class="color-swatch" data-color="#EC4899" style="background:#EC4899" aria-label="Rosa"></button>
+            <button type="button" class="color-swatch" data-color="#8B5CF6" style="background:#8B5CF6" aria-label="Violeta"></button>
+            <button type="button" class="color-swatch" data-color="#6366F1" style="background:#6366F1" aria-label="Índigo"></button>
+            <button type="button" class="color-swatch" data-color="#14B8A6" style="background:#14B8A6" aria-label="Teal"></button>
+            <button type="button" class="color-swatch" data-color="#64748B" style="background:#64748B" aria-label="Gris"></button>
+          </div>
+        </div>
         <div class="dialog-actions">
           <button class="btn subtle" value="cancel" formnovalidate>Cancelar</button>
           <button class="btn primary" value="ok">Crear</button>

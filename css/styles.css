@@ -573,6 +573,31 @@ html[data-theme="light"] .field select{ background: rgba(255,255,255,.70); }
   word-break: break-word;
   overflow-wrap: break-word;
 }
+/* ===== Color palette ===== */
+.color-palette{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.color-swatch{
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  cursor: pointer;
+  transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+  padding: 0;
+  outline: none;
+}
+.color-swatch:hover{
+  transform: scale(1.15);
+}
+.color-swatch.active{
+  border-color: var(--text);
+  box-shadow: 0 0 0 3px rgba(124,58,237,.25);
+  transform: scale(1.1);
+}
+
 .dialog-title{ font-weight: 860; font-size: 16px; margin-bottom: 10px; }
 .dialog-text{ color: var(--muted); font-size: 13px; line-height: 1.4; margin-bottom: 12px; }
 .dialog-actions{
