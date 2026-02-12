@@ -12,7 +12,7 @@ const {
 const { clampText, debounce, downloadJson, escapeHtml, isValidUrl, nowIso, parseYoutubeId, uid } = window.KeepyUtils;
 
 const ALL_CATEGORIES_ID = "cat_all";
-const NOTE_TYPES = ["youtube", "link", "quote", "text", "image", "list"];
+const NOTE_TYPES = ["youtube", "link", "quote", "text", "image", "list", "simple"];
 
 const el = {
   app: document.querySelector(".app"),
@@ -342,7 +342,8 @@ function renderEditor() {
     return;
   }
 
-  const titleText = note.title?.trim() || typeLabelOf(note.type);
+  const titleText =
+    note.type === "simple" ? "Simple" : (note.title?.trim() || typeLabelOf(note.type));
   el.editorTitle.textContent = titleText;
   el.editorSubtitle.textContent = `${typeLabelOf(note.type)} • Última edición: ${formatShortDate(
     note.updatedAt || note.createdAt,
@@ -384,6 +385,7 @@ function buildTypeEditor(note) {
   if (note.type === "text") return buildTextEditor(note);
   if (note.type === "image") return buildImageEditor(note);
   if (note.type === "list") return buildListEditor(note);
+  if (note.type === "simple") return buildSimpleEditor(note);
   return `<div class="editor-card"><div class="empty-text">Tipo no soportado.</div></div>`;
 }
 
@@ -493,6 +495,14 @@ function buildListEditor(note) {
   `;
 }
 
+function buildSimpleEditor(note) {
+  return `
+    <div class="editor-card">
+      <div class="hint">Nota simple: solo título. Puedes cambiar el tipo arriba si quieres añadir más.</div>
+    </div>
+  `;
+}
+
 function buildImageEditor(note) {
   const src = note.image?.src || "";
   const alt = note.image?.alt || "";
@@ -547,9 +557,10 @@ function wireEditorEvents(note) {
       // Limpiar campos específicos para evitar basura cruzada
       if (note.type !== "image") delete note.image;
       if (note.type !== "quote") delete note.author;
-      if (note.type === "text" || note.type === "list") {
+      if (note.type === "text" || note.type === "list" || note.type === "simple") {
         delete note.url;
       }
+      if (note.type === "simple") delete note.content;
       setData(state.data);
       renderEditor();
       renderNotes();
@@ -765,7 +776,7 @@ function showCategoryContextMenu(cat, rowEl) {
 
 function openNoteTypeDialog() {
   el.noteTitleInput.value = "";
-  el.noteTypeSelect.value = "youtube";
+  el.noteTypeSelect.value = "simple";
   el.noteTypeDialog.showModal();
   setTimeout(() => el.noteTitleInput.focus(), 0);
 }
@@ -971,6 +982,8 @@ function typeLabelOf(type) {
       return "Imagen";
     case "list":
       return "Listado";
+    case "simple":
+      return "Simple";
     default:
       return "Nota";
   }
@@ -1011,6 +1024,7 @@ function buildNotePreviewText(note) {
     const alt = note.image?.alt?.trim() ? note.image.alt.trim() : "";
     return alt ? clampText(alt, 160) : "Imagen";
   }
+  if (note.type === "simple") return (note.title || "").trim() || "Sin título";
   return clampText(note.content || "", 160);
 }
 
