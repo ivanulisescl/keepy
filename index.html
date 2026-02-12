@@ -106,16 +106,26 @@
 
       <footer class="bottombar">
         <div class="bottombar-left">
-          <button class="btn subtle" id="btnExport">Exportar JSON</button>
+          <button class="btn subtle" id="btnExport">
+            <span class="desktop-label">Exportar JSON</span>
+            <span class="mobile-label">Exportar</span>
+          </button>
           <label class="btn subtle file">
-            Importar JSON
+            <span class="desktop-label">Importar JSON</span>
+            <span class="mobile-label">Importar</span>
             <input id="fileImport" type="file" accept="application/json" />
           </label>
           <div class="version-pill" id="appVersion" aria-label="Versión de Keepy"></div>
         </div>
         <div class="bottombar-right">
-          <button class="btn subtle" id="btnSyncIfNew">Sync si hay nueva versión</button>
-          <button class="btn" id="btnSync">Sync desde GitHub (reemplazar)</button>
+          <button class="btn subtle" id="btnSyncIfNew">
+            <span class="desktop-label">Sync si hay nueva versión</span>
+            <span class="mobile-label">Sync nuevo</span>
+          </button>
+          <button class="btn" id="btnSync">
+            <span class="desktop-label">Sync desde GitHub (reemplazar)</span>
+            <span class="mobile-label">Sync GitHub</span>
+          </button>
         </div>
       </footer>
     </div>
