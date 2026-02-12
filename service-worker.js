@@ -1,5 +1,5 @@
 /* Keepy - Service Worker (cache básico) */
-const CACHE_VERSION = "keepy-v1";
+const CACHE_VERSION = "keepy-v2";
 const PRECACHE_URLS = [
   "./",
   "./index.html",
