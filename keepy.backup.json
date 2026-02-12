@@ -1,17 +1,37 @@
 {
   "version": 1,
-  "appVersion": "0.5.2",
-  "updatedAt": "2026-02-12T00:00:00.000Z",
+  "appVersion": "0.5.3",
+  "updatedAt": "2026-02-12T12:00:00.000Z",
   "categories": [
-    {
-      "id": "cat_general",
-      "name": "General",
-      "color": "#7C3AED",
-      "icon": "bookmark",
-      "createdAt": "2026-02-12T00:00:00.000Z",
-      "updatedAt": "2026-02-12T00:00:00.000Z"
-    }
+    {"id": "cat_general", "name": "General", "color": "#7C3AED", "icon": "bookmark", "createdAt": "2026-02-12T00:00:00.000Z", "updatedAt": "2026-02-12T00:00:00.000Z"},
+    {"id": "cat_pelis", "name": "Pelis", "color": "#EF4444", "icon": "bookmark", "createdAt": "2026-02-12T12:00:00.000Z", "updatedAt": "2026-02-12T12:00:00.000Z"},
+    {"id": "cat_series", "name": "Series", "color": "#3B82F6", "icon": "bookmark", "createdAt": "2026-02-12T12:00:00.000Z", "updatedAt": "2026-02-12T12:00:00.000Z"},
+    {"id": "cat_estetica", "name": "Estética", "color": "#EC4899", "icon": "bookmark", "createdAt": "2026-02-12T12:00:00.000Z", "updatedAt": "2026-02-12T12:00:00.000Z"},
+    {"id": "cat_compras", "name": "Compras", "color": "#22C55E", "icon": "bookmark", "createdAt": "2026-02-12T12:00:00.000Z", "updatedAt": "2026-02-12T12:00:00.000Z"},
+    {"id": "cat_alfombras", "name": "Alfombras", "color": "#F97316", "icon": "bookmark", "createdAt": "2026-02-12T12:00:00.000Z", "updatedAt": "2026-02-12T12:00:00.000Z"},
+    {"id": "cat_espejos", "name": "Espejos", "color": "#06B6D4", "icon": "bookmark", "createdAt": "2026-02-12T12:00:00.000Z", "updatedAt": "2026-02-12T12:00:00.000Z"},
+    {"id": "cat_fitness", "name": "Fitness", "color": "#EAB308", "icon": "bookmark", "createdAt": "2026-02-12T12:00:00.000Z", "updatedAt": "2026-02-12T12:00:00.000Z"}
   ],
-  "notes": []
+  "notes": [
+    {"id": "note_p1", "categoryId": "cat_pelis", "type": "youtube", "title": "Dune 2", "content": "Ver en cine", "url": "https://www.youtube.com/watch?v=8bT1oVlG0-s", "pinned": false, "createdAt": "2026-02-12T12:01:00.000Z", "updatedAt": "2026-02-12T12:01:00.000Z"},
+    {"id": "note_p2", "categoryId": "cat_pelis", "type": "link", "title": "Oppenheimer", "content": "Película de Nolan", "url": "https://www.imdb.com/title/tt15398776/", "pinned": false, "createdAt": "2026-02-12T12:02:00.000Z", "updatedAt": "2026-02-12T12:02:00.000Z"},
+    {"id": "note_p3", "categoryId": "cat_pelis", "type": "quote", "title": "Cita de El Padrino", "content": "Voy a hacerle una oferta que no podrá rechazar.", "author": "Don Vito Corleone", "pinned": false, "createdAt": "2026-02-12T12:03:00.000Z", "updatedAt": "2026-02-12T12:03:00.000Z"},
+    {"id": "note_p4", "categoryId": "cat_pelis", "type": "text", "title": "Lista pendientes", "content": "Interestelar, Matrix, Blade Runner 2049", "url": "", "pinned": false, "createdAt": "2026-02-12T12:04:00.000Z", "updatedAt": "2026-02-12T12:04:00.000Z"},
+    {"id": "note_p5", "categoryId": "cat_pelis", "type": "youtube", "title": "Tráiler Poor Things", "content": "", "url": "https://www.youtube.com/watch?v=RlbR5N6veqw", "pinned": false, "createdAt": "2026-02-12T12:05:00.000Z", "updatedAt": "2026-02-12T12:05:00.000Z"},
+    {"id": "note_p6", "categoryId": "cat_pelis", "type": "link", "title": "Killers of the Flower Moon", "content": "Scorsese", "url": "https://www.imdb.com/title/tt5537006/", "pinned": false, "createdAt": "2026-02-12T12:06:00.000Z", "updatedAt": "2026-02-12T12:06:00.000Z"},
+    {"id": "note_p7", "categoryId": "cat_pelis", "type": "quote", "title": "Forrest Gump", "content": "La vida es como una caja de bombones, nunca sabes lo que te va a tocar.", "author": "Forrest Gump", "pinned": false, "createdAt": "2026-02-12T12:07:00.000Z", "updatedAt": "2026-02-12T12:07:00.000Z"},
+    {"id": "note_p8", "categoryId": "cat_pelis", "type": "text", "title": "Clásicos por ver", "content": "Ciudadano Kane, Casablanca, 2001", "url": "", "pinned": false, "createdAt": "2026-02-12T12:08:00.000Z", "updatedAt": "2026-02-12T12:08:00.000Z"},
+    {"id": "note_p9", "categoryId": "cat_pelis", "type": "youtube", "title": "Everything Everywhere", "content": "Oscar 2023", "url": "https://www.youtube.com/watch?v=wxN1T1uxQ2g", "pinned": false, "createdAt": "2026-02-12T12:09:00.000Z", "updatedAt": "2026-02-12T12:09:00.000Z"},
+    {"id": "note_p10", "categoryId": "cat_pelis", "type": "link", "title": "Letterboxd", "content": "Seguir listas", "url": "https://letterboxd.com/", "pinned": false, "createdAt": "2026-02-12T12:10:00.000Z", "updatedAt": "2026-02-12T12:10:00.000Z"},
+    {"id": "note_s1", "categoryId": "cat_series", "type": "youtube", "title": "Breaking Bad", "content": "Temporada 5 pendiente", "url": "https://www.youtube.com/watch?v=HhesaQXLuRY", "pinned": false, "createdAt": "2026-02-12T12:11:00.000Z", "updatedAt": "2026-02-12T12:11:00.000Z"},
+    {"id": "note_s2", "categoryId": "cat_series", "type": "link", "title": "The Last of Us", "content": "HBO", "url": "https://www.imdb.com/title/tt3581920/", "pinned": false, "createdAt": "2026-02-12T12:12:00.000Z", "updatedAt": "2026-02-12T12:12:00.000Z"},
+    {"id": "note_s3", "categoryId": "cat_series", "type": "quote", "title": "Juego de Tronos", "content": "Cuando juegas al juego de tronos, ganas o mueres.", "author": "Cersei Lannister", "pinned": false, "createdAt": "2026-02-12T12:13:00.000Z", "updatedAt": "2026-02-12T12:13:00.000Z"},
+    {"id": "note_s4", "categoryId": "cat_series", "type": "text", "title": "Pendientes 2025", "content": "The Bear S4, Severance S2, Shōgun", "url": "", "pinned": false, "createdAt": "2026-02-12T12:14:00.000Z", "updatedAt": "2026-02-12T12:14:00.000Z"},
+    {"id": "note_s5", "categoryId": "cat_series", "type": "youtube", "title": "Stranger Things", "content": "Última temporada", "url": "https://www.youtube.com/watch?v=otnSqJhNl2g", "pinned": false, "createdAt": "2026-02-12T12:15:00.000Z", "updatedAt": "2026-02-12T12:15:00.000Z"},
+    {"id": "note_s6", "categoryId": "cat_series", "type": "link", "title": "Succession", "content": "HBO", "url": "https://www.imdb.com/title/tt7660850/", "pinned": false, "createdAt": "2026-02-12T12:16:00.000Z", "updatedAt": "2026-02-12T12:16:00.000Z"},
+    {"id": "note_s7", "categoryId": "cat_series", "type": "quote", "title": "The Office", "content": "That's what she said.", "author": "Michael Scott", "pinned": false, "createdAt": "2026-02-12T12:17:00.000Z", "updatedAt": "2026-02-12T12:17:00.000Z"},
+    {"id": "note_s8", "categoryId": "cat_series", "type": "text", "title": "Recomendaciones", "content": "Dark, Black Mirror, Severance", "url": "", "pinned": false, "createdAt": "2026-02-12T12:18:00.000Z", "updatedAt": "2026-02-12T12:18:00.000Z"},
+    {"id": "note_s9", "categoryId": "cat_series", "type": "youtube", "title": "Squid Game", "content": "Temporada 2", "url": "https://www.youtube.com/watch?v=oqxAJKy0ii4", "pinned": false, "createdAt": "2026-02-12T12:19:00.000Z", "updatedAt": "2026-02-12T12:19:00.000Z"},
+    {"id": "note_s10", "categoryId": "cat_series", "type": "link", "title": "True Detective", "content": "S4 con Jodie Foster", "url": "https://www.imdb.com/title/tt2356777/", "pinned": false, "createdAt": "2026-02-12T12:20:00.000Z", "updatedAt": "2026-02-12T12:20:00.000Z"}
+  ]
 }
-

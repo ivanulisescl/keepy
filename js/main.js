@@ -478,7 +478,6 @@ function wireEditorEvents(note) {
       note.author = edAuthor.value.trim();
       note.updatedAt = nowIso();
       saveDebounced();
-      renderEditor();
     });
   }
 
