@@ -46,7 +46,8 @@ const el = {
   editorBody: document.getElementById("editorBody"),
   btnDeleteNote: document.getElementById("btnDeleteNote"),
   btnPinNote: document.getElementById("btnPinNote"),
-  btnBackToList: document.getElementById("btnBackToList"),
+  btnSaveNote: document.getElementById("btnSaveNote"),
+  btnCancelNote: document.getElementById("btnCancelNote"),
 
   confirmDialog: document.getElementById("confirmDialog"),
   confirmTitle: document.getElementById("confirmTitle"),
@@ -71,6 +72,8 @@ const el = {
 
 /** @type {string|null} Id de categoría en edición; null = nueva categoría */
 let editingCategoryId = null;
+/** @type {string|null} Id de nota recién creada; para Cancelar = descartar */
+let noteJustCreatedId = null;
 
 /** @type {{ data: any, selectedCategoryId: string|null, selectedNoteId: string|null, search: string, filterType: string }} */
 const state = {
@@ -302,7 +305,7 @@ function renderNotes() {
     card.dataset.noteId = n.id;
     const typeLabel = typeLabelOf(n.type);
     const title = n.title?.trim() ? n.title.trim() : typeLabel;
-    const preview = buildNotePreviewText(n);
+    const preview = n.type === "list" ? contentToListHtml(n.content || "") : escapeHtml(buildNotePreviewText(n));
     const media = buildNoteMediaHtml(n);
     card.innerHTML = `
       <div class="note-top">
@@ -312,11 +315,12 @@ function renderNotes() {
           <span class="badge">${escapeHtml(typeLabel)}</span>
         </div>
       </div>
-      <div class="note-preview">${escapeHtml(preview)}</div>
+      <div class="note-preview">${preview}</div>
       ${media}
     `;
     card.addEventListener("click", () => {
       state.selectedNoteId = n.id;
+      noteJustCreatedId = null;
       if (window.innerWidth <= 780) el.app.classList.add("mobile-editor");
       render();
     });
@@ -328,6 +332,8 @@ function renderEditor() {
   const note = state.selectedNoteId ? getNoteById(state.selectedNoteId) : null;
   el.btnDeleteNote.disabled = !note;
   el.btnPinNote.disabled = !note;
+  if (el.btnSaveNote) el.btnSaveNote.disabled = !note;
+  if (el.btnCancelNote) el.btnCancelNote.disabled = !note;
 
   if (!note) {
     el.editorTitle.textContent = "Detalle";
@@ -391,9 +397,13 @@ function buildTypeEditor(note) {
 }
 
 function buildYoutubeEditor(note) {
-  const url = note.url || "";
+  const url = (note.url || "").trim();
   const vid = url ? parseYoutubeId(url) : null;
   const thumb = vid ? `https://i.ytimg.com/vi/${vid}/hqdefault.jpg` : "";
+  const safeOpenUrl =
+    url && isValidUrl(url) && (url.startsWith("http:") || url.startsWith("https:"))
+      ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="editor-link">${escapeHtml(url)}</a>`
+      : '<span class="hint">Escribe una URL válida y pincha sobre ella para abrir.</span>';
   return `
     <div class="editor-card">
       <div class="editor-grid single">
@@ -406,9 +416,7 @@ function buildYoutubeEditor(note) {
           <textarea id="edContent" placeholder="¿Qué quieres recordar?">${escapeHtml(note.content || "")}</textarea>
         </label>
       </div>
-      <div class="editor-open-link">
-        <button type="button" class="btn primary" id="btnOpenUrl">Abrir en YouTube</button>
-      </div>
+      <div class="editor-open-link">${safeOpenUrl}</div>
       <div class="preview-row">
         ${
           thumb
@@ -421,7 +429,11 @@ function buildYoutubeEditor(note) {
 }
 
 function buildLinkEditor(note) {
-  const url = note.url || "";
+  const url = (note.url || "").trim();
+  const safeOpenUrl =
+    url && isValidUrl(url) && (url.startsWith("http:") || url.startsWith("https:"))
+      ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="editor-link">${escapeHtml(url)}</a>`
+      : '<span class="hint">Escribe una URL válida y pincha sobre ella para abrir.</span>';
   return `
     <div class="editor-card">
       <div class="editor-grid single">
@@ -434,9 +446,7 @@ function buildLinkEditor(note) {
           <textarea id="edContent" placeholder="Resumen / por qué lo guardas…">${escapeHtml(note.content || "")}</textarea>
         </label>
       </div>
-      <div class="editor-open-link">
-        <button type="button" class="btn primary" id="btnOpenUrl">Abrir enlace</button>
-      </div>
+      <div class="editor-open-link">${safeOpenUrl}</div>
       <div class="hint">${url ? `Dominio: ${escapeHtml(safeHostname(url))}` : "Tip: pega cualquier enlace (artículo, tienda, etc.)"}</div>
     </div>
   `;
@@ -481,17 +491,18 @@ function buildTextEditor(note) {
 }
 
 function buildListEditor(note) {
-  const listHtml = contentToListHtml(note.content || "");
+  const lines = (note.content || "").split(/\r?\n/).filter((s) => s !== null && s !== undefined);
+  const lisHtml =
+    lines.length > 0
+      ? lines.map((l) => `<li>${escapeHtml(l)}</li>`).join("")
+      : "<li><br></li>";
   return `
     <div class="editor-card">
-      <div class="editor-grid single">
-        <label class="field">
-          <span>Elementos del listado</span>
-          <textarea id="edContent" placeholder="Una línea por elemento. Cada línea se mostrará con viñeta.">${escapeHtml(note.content || "")}</textarea>
-        </label>
-      </div>
-      <div class="hint">Vista previa:</div>
-      <div id="listPreview" class="list-preview">${listHtml}</div>
+      <label class="field">
+        <span>Elementos del listado</span>
+        <ul contenteditable="true" id="edListContent" class="editor-list-input" data-placeholder="Añade elementos…">${lisHtml}</ul>
+      </label>
+      <div class="hint">Enter para nueva línea.</div>
     </div>
   `;
 }
@@ -507,6 +518,9 @@ function buildSimpleEditor(note) {
 function buildImageEditor(note) {
   const src = note.image?.src || "";
   const alt = note.image?.alt || "";
+  const previewHtml = src
+    ? `<div class="preview"><a href="${escapeHtml(src)}" target="_blank" rel="noopener noreferrer" class="preview-image-link" title="Abrir imagen completa"><img src="${escapeHtml(src)}" alt="${escapeHtml(alt || "Imagen guardada")}" /></a><div class="preview-meta">Vista previa (pincha para abrir completa)</div></div>`
+    : `<div class="hint">Pega una URL, usa el botón Pegar o sube un archivo para previsualizar.</div>`;
   return `
     <div class="editor-card">
       <div class="editor-grid">
@@ -518,17 +532,17 @@ function buildImageEditor(note) {
           <span>Subir imagen (se guarda como DataURL)</span>
           <input id="edImgFile" type="file" accept="image/*" />
         </label>
+        <label class="field">
+          <span>Portapapeles</span>
+          <button type="button" class="btn subtle" id="btnPasteImage">Pegar imagen</button>
+        </label>
         <label class="field" style="grid-column: 1 / -1;">
           <span>Texto alternativo (opcional)</span>
           <input id="edImgAlt" maxlength="120" value="${escapeHtml(alt)}" placeholder="Descripción breve de la imagen" />
         </label>
       </div>
       <div class="preview-row">
-        ${
-          src
-            ? `<div class="preview"><img src="${escapeHtml(src)}" alt="${escapeHtml(alt || "Imagen guardada")}" /><div class="preview-meta">Vista previa</div></div>`
-            : `<div class="hint">Pega una URL o sube un archivo para previsualizar.</div>`
-        }
+        ${previewHtml}
       </div>
       <div class="hint">Aviso: Local Storage tiene límites. Para muchas imágenes grandes conviene usar URL o IndexedDB.</div>
     </div>
@@ -579,32 +593,45 @@ function wireEditorEvents(note) {
     });
   }
 
-  const btnOpenUrl = document.getElementById("btnOpenUrl");
-  if (btnOpenUrl && edUrl) {
-    btnOpenUrl.addEventListener("click", () => {
-      const url = edUrl.value.trim();
-      if (!url) {
-        showToast("Escribe una URL primero.");
-        return;
-      }
-      if (!isValidUrl(url)) {
-        showToast("URL no válida.");
-        return;
-      }
-      window.open(url, "_blank", "noopener,noreferrer");
-    });
-  }
-
   const edContent = document.getElementById("edContent");
   if (edContent) {
     edContent.addEventListener("input", () => {
       note.content = edContent.value;
       note.updatedAt = nowIso();
       saveDebounced();
-      if (note.type === "list") {
-        const prev = document.getElementById("listPreview");
-        if (prev) prev.innerHTML = contentToListHtml(edContent.value);
+    });
+  }
+
+  const edListContent = document.getElementById("edListContent");
+  if (edListContent && note.type === "list") {
+    const syncListToNote = () => {
+      const lines = Array.from(edListContent.querySelectorAll("li")).map((li) => li.textContent || "");
+      note.content = lines.join("\n");
+      note.updatedAt = nowIso();
+      saveDebounced();
+    };
+    edListContent.addEventListener("input", syncListToNote);
+    edListContent.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      const sel = window.getSelection();
+      let li = sel?.anchorNode;
+      while (li && li !== edListContent) {
+        if (li.nodeName === "LI") break;
+        li = li.parentNode;
       }
+      if (!li || li.nodeName !== "LI") return;
+      e.preventDefault();
+      const next = document.createElement("li");
+      next.innerHTML = "<br>";
+      if (li.nextSibling) edListContent.insertBefore(next, li.nextSibling);
+      else edListContent.appendChild(next);
+      next.focus?.();
+      sel?.removeAllRanges();
+      const range = document.createRange();
+      range.setStart(next, 0);
+      range.collapse(true);
+      sel?.addRange(range);
+      syncListToNote();
     });
   }
 
@@ -655,6 +682,64 @@ function wireEditorEvents(note) {
       setData(state.data);
       render();
     });
+  }
+
+  const btnPasteImage = document.getElementById("btnPasteImage");
+  if (btnPasteImage) {
+    btnPasteImage.addEventListener("click", async () => {
+      try {
+        const items = await navigator.clipboard.read();
+        for (const item of items) {
+          for (const type of item.types) {
+            if (type.startsWith("image/")) {
+              const blob = await item.getType(type);
+              const file = new File([blob], "pasted.png", { type: blob.type });
+              if (file.size > 1_200_000) showToast("Imagen grande: puede exceder el límite del Local Storage.");
+              const dataUrl = await fileToDataUrl(file);
+              note.image = note.image || { src: "", alt: "" };
+              note.image.src = dataUrl;
+              note.updatedAt = nowIso();
+              setData(state.data);
+              render();
+              showToast("Imagen pegada.");
+              return;
+            }
+          }
+        }
+        showToast("No hay ninguna imagen en el portapapeles.");
+      } catch (err) {
+        showToast("No se pudo leer el portapapeles. Prueba a pegar con Ctrl+V.");
+      }
+    });
+  }
+}
+
+function setupImagePasteHandler() {
+  document.removeEventListener("paste", handleImagePaste);
+  document.addEventListener("paste", handleImagePaste);
+}
+
+function handleImagePaste(e) {
+  const note = state.selectedNoteId ? getNoteById(state.selectedNoteId) : null;
+  if (!note || note.type !== "image") return;
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].type.indexOf("image") !== -1) {
+      const file = items[i].getAsFile();
+      if (!file) return;
+      e.preventDefault();
+      if (file.size > 1_200_000) showToast("Imagen grande: puede exceder el límite del Local Storage.");
+      fileToDataUrl(file).then((dataUrl) => {
+        note.image = note.image || { src: "", alt: "" };
+        note.image.src = dataUrl;
+        note.updatedAt = nowIso();
+        setData(state.data);
+        render();
+        showToast("Imagen pegada.");
+      });
+      return;
+    }
   }
 }
 
@@ -802,6 +887,7 @@ function createNote({ type, title }) {
   state.data.notes.push(note);
   setData(state.data);
   state.selectedNoteId = note.id;
+  noteJustCreatedId = note.id;
   render();
   if (window.innerWidth <= 780) el.app.classList.add("mobile-editor");
   showToast("Nota creada.");
@@ -1067,9 +1153,9 @@ function buildNoteMediaHtml(note) {
     return `<div class="note-media"><img loading="lazy" src="${escapeHtml(thumb)}" alt="Miniatura de YouTube" /></div>`;
   }
   if (note.type === "image" && note.image?.src) {
-    return `<div class="note-media"><img loading="lazy" src="${escapeHtml(note.image.src)}" alt="${escapeHtml(
-      note.image.alt || "Imagen",
-    )}" /></div>`;
+    const imgSrc = note.image.src;
+    const imgAlt = escapeHtml(note.image.alt || "Imagen");
+    return `<div class="note-media"><a href="${escapeHtml(imgSrc)}" target="_blank" rel="noopener noreferrer" class="note-media-image-link" title="Abrir imagen completa"><img loading="lazy" src="${escapeHtml(imgSrc)}" alt="${imgAlt}" /></a></div>`;
   }
   return "";
 }
@@ -1202,8 +1288,30 @@ el.searchInput.addEventListener(
 
 el.btnDeleteNote.addEventListener("click", confirmDeleteNote);
 el.btnPinNote.addEventListener("click", togglePinNote);
-el.btnBackToList.addEventListener("click", () => {
-  el.app.classList.remove("mobile-editor");
+
+function goBackFromEditor() {
+  noteJustCreatedId = null;
+  state.selectedNoteId = null;
+  if (window.innerWidth <= 780) el.app.classList.remove("mobile-editor");
+  render();
+}
+
+el.btnSaveNote.addEventListener("click", () => {
+  goBackFromEditor();
+  showToast("Guardado.");
+});
+el.btnCancelNote.addEventListener("click", async () => {
+  const note = state.selectedNoteId ? getNoteById(state.selectedNoteId) : null;
+  if (note && state.selectedNoteId === noteJustCreatedId) {
+    el.confirmTitle.textContent = "Descartar nota";
+    el.confirmText.textContent = "¿Descartar esta nota recién creada? No se guardará.";
+    el.confirmDialog.showModal();
+    const result = await waitDialogResult(el.confirmDialog);
+    if (result !== "ok") return;
+    state.data.notes = state.data.notes.filter((n) => n.id !== note.id);
+    setData(state.data);
+  }
+  goBackFromEditor();
 });
 
 el.btnExport.addEventListener("click", () => {
@@ -1232,6 +1340,7 @@ el.btnDeleteAllNotes.addEventListener("click", () => {
 
 // ---------- Boot ----------
 initTheme();
+setupImagePasteHandler();
 // First render (Todas por defecto)
 state.selectedCategoryId = ALL_CATEGORIES_ID;
 render();

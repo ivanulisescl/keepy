@@ -9,7 +9,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./icon-192.png?v=3" />
     <link rel="apple-touch-icon" href="./icon-192.png?v=3" />
-    <link rel="stylesheet" href="./css/styles.css?v=0.6.7" />
+    <link rel="stylesheet" href="./css/styles.css?v=0.6.8" />
   </head>
   <body>
     <div class="app">
@@ -115,7 +115,8 @@
               <div class="panel-sub" id="editorSubtitle">Selecciona una nota</div>
             </div>
             <div class="panel-actions">
-              <button class="btn subtle mobile-only" id="btnBackToList">Volver</button>
+              <button class="btn subtle" id="btnCancelNote" disabled>Cancelar</button>
+              <button class="btn primary" id="btnSaveNote" disabled>Guardar</button>
               <button class="btn subtle" id="btnPinNote" disabled>Fijar</button>
               <button class="btn danger" id="btnDeleteNote" disabled>Eliminar</button>
             </div>
@@ -225,8 +226,8 @@
       </form>
     </dialog>
 
-    <script defer src="./js/utils.js?v=0.6.7"></script>
-    <script defer src="./js/storage.js?v=0.6.7"></script>
-    <script defer src="./js/main.js?v=0.6.7"></script>
+    <script defer src="./js/utils.js?v=0.6.8"></script>
+    <script defer src="./js/storage.js?v=0.6.8"></script>
+    <script defer src="./js/main.js?v=0.6.8"></script>
   </body>
 </html>
