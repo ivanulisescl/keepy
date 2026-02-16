@@ -3,7 +3,7 @@
 
   const STORAGE_KEY = "keepy:data:v1";
   const THEME_KEY = "keepy:theme";
-  const APP_VERSION = "0.6.10";
+  const APP_VERSION = "0.6.11";
   const SYNC_URL_KEY = "keepy:syncUrl";
 
   function defaultData() {
