@@ -515,7 +515,7 @@ function buildImageEditor(note) {
   const src = note.image?.src || "";
   const alt = note.image?.alt || "";
   const previewHtml = src
-    ? `<div class="preview"><a href="${escapeHtml(src)}" target="_blank" rel="noopener noreferrer" class="preview-image-link" title="Abrir imagen completa"><img src="${escapeHtml(src)}" alt="${escapeHtml(alt || "Imagen guardada")}" /></a><div class="preview-meta">Pincha para abrir completa</div></div>`
+    ? `<div class="preview"><button type="button" class="preview-image-link" title="Ver imagen completa"><img src="${escapeHtml(src)}" alt="${escapeHtml(alt || "Imagen guardada")}" /></button><div class="preview-meta">Pincha para ver completa</div></div>`
     : "";
   return `
     <div class="editor-card">
@@ -527,8 +527,9 @@ function buildImageEditor(note) {
         <label class="field">
           <span>Portapapeles</span>
           <button type="button" class="btn subtle" id="btnPasteImage">Pegar imagen</button>
-          <span class="field-hint">Para capturas: Ctrl+V (o Cmd+V)</span>
+          <span class="field-hint">Capturas: Ctrl+V o en móvil toca aquí y luego mantén pulsado → Pegar</span>
         </label>
+        <input type="text" id="imagePasteTarget" class="sr-only" aria-label="Zona para pegar imagen" autocomplete="off" />
         <label class="field" style="grid-column: 1 / -1;">
           <span>Texto alternativo (opcional)</span>
           <input id="edImgAlt" maxlength="120" value="${escapeHtml(alt)}" placeholder="Descripción breve" />
@@ -664,6 +665,11 @@ function wireEditorEvents(note) {
   const btnPasteImage = document.getElementById("btnPasteImage");
   if (btnPasteImage) {
     btnPasteImage.addEventListener("click", async () => {
+      const pasteTarget = document.getElementById("imagePasteTarget");
+      if (pasteTarget && window.innerWidth <= 780) {
+        pasteTarget.focus();
+        showToast("Mantén pulsado en la pantalla y elige Pegar");
+      }
       try {
         const items = await navigator.clipboard.read();
         for (const item of items) {
@@ -685,7 +691,8 @@ function wireEditorEvents(note) {
         }
         showToast("No hay imagen en el portapapeles. Si acabas de hacer una captura, usa Ctrl+V aquí.");
       } catch (err) {
-        showToast("Con capturas usa Ctrl+V (o Cmd+V) en esta página para pegar la imagen.");
+        if (pasteTarget) pasteTarget.focus();
+        showToast("Con capturas usa Ctrl+V o en móvil: toca Pegar imagen y luego mantén pulsado → Pegar");
       }
     });
   }
@@ -694,6 +701,41 @@ function wireEditorEvents(note) {
 function setupImagePasteHandler() {
   document.removeEventListener("paste", handleImagePaste);
   document.addEventListener("paste", handleImagePaste);
+}
+
+function openImageLightbox(src) {
+  const box = document.getElementById("imageLightbox");
+  const img = box?.querySelector(".image-lightbox-img");
+  if (!box || !img) return;
+  img.src = src;
+  img.alt = "Imagen ampliada";
+  box.hidden = false;
+  box.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+}
+function closeImageLightbox() {
+  const box = document.getElementById("imageLightbox");
+  if (!box) return;
+  box.hidden = true;
+  box.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+  const img = box.querySelector(".image-lightbox-img");
+  if (img) img.src = "";
+}
+function setupImageLightbox() {
+  document.addEventListener("click", (e) => {
+    const link = e.target.closest(".note-media-image-link, .preview-image-link");
+    if (!link) return;
+    const img = link.querySelector("img");
+    if (img?.src) {
+      e.preventDefault();
+      openImageLightbox(img.src);
+    }
+  });
+  const box = document.getElementById("imageLightbox");
+  const closeBtn = box?.querySelector(".image-lightbox-close");
+  if (closeBtn) closeBtn.addEventListener("click", closeImageLightbox);
+  if (box) box.addEventListener("click", (e) => { if (e.target === box) closeImageLightbox(); });
 }
 
 function handleImagePaste(e) {
@@ -1155,7 +1197,7 @@ function buildNoteMediaHtml(note) {
   if (note.type === "image" && note.image?.src) {
     const imgSrc = note.image.src;
     const imgAlt = escapeHtml(note.image.alt || "Imagen");
-    return `<div class="note-media"><a href="${escapeHtml(imgSrc)}" target="_blank" rel="noopener noreferrer" class="note-media-image-link" title="Abrir imagen completa"><img loading="lazy" src="${escapeHtml(imgSrc)}" alt="${imgAlt}" /></a></div>`;
+    return `<div class="note-media"><button type="button" class="note-media-image-link" title="Ver imagen completa"><img loading="lazy" src="${escapeHtml(imgSrc)}" alt="${imgAlt}" /></button></div>`;
   }
   return "";
 }
@@ -1341,6 +1383,7 @@ el.btnDeleteAllNotes.addEventListener("click", () => {
 // ---------- Boot ----------
 initTheme();
 setupImagePasteHandler();
+setupImageLightbox();
 // First render (Todas por defecto)
 state.selectedCategoryId = ALL_CATEGORIES_ID;
 render();
