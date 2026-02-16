@@ -9,7 +9,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./icon-192.png?v=3" />
     <link rel="apple-touch-icon" href="./icon-192.png?v=3" />
-    <link rel="stylesheet" href="./css/styles.css?v=0.6.8" />
+    <link rel="stylesheet" href="./css/styles.css?v=0.6.9" />
   </head>
   <body>
     <div class="app">
@@ -102,7 +102,7 @@
                   <option value="simple">Simple</option>
                 </select>
               </label>
-              <button class="btn primary" id="btnAddNote" disabled>Nueva nota</button>
+              <button class="btn btn-add-note" id="btnAddNote" disabled aria-label="Nueva nota" title="Nueva nota">+</button>
             </div>
           </div>
           <div class="notes-list" id="notesList"></div>
@@ -114,12 +114,6 @@
               <div class="panel-title" id="editorTitle">Detalle</div>
               <div class="panel-sub" id="editorSubtitle">Selecciona una nota</div>
             </div>
-            <div class="panel-actions">
-              <button class="btn subtle" id="btnCancelNote" disabled>Cancelar</button>
-              <button class="btn primary" id="btnSaveNote" disabled>Guardar</button>
-              <button class="btn subtle" id="btnPinNote" disabled>Fijar</button>
-              <button class="btn danger" id="btnDeleteNote" disabled>Eliminar</button>
-            </div>
           </div>
 
           <div class="editor-body" id="editorBody">
@@ -127,6 +121,12 @@
               <div class="empty-title">Nada seleccionado</div>
               <div class="empty-text">Elige una categoría y crea tu primera nota.</div>
             </div>
+          </div>
+          <div class="editor-footer">
+            <button class="btn subtle" id="btnCancelNote" disabled>Cancelar</button>
+            <button class="btn primary" id="btnSaveNote" disabled>Guardar</button>
+            <button class="btn subtle" id="btnPinNote" disabled>Fijar</button>
+            <button class="btn danger" id="btnDeleteNote" disabled>Eliminar</button>
           </div>
         </section>
       </main>
@@ -203,6 +203,16 @@
       </form>
     </dialog>
 
+    <dialog class="dialog" id="categoryChoiceDialog">
+      <div class="dialog-card">
+        <div class="dialog-title">¿En qué categoría?</div>
+        <div id="categoryChoiceList" class="category-choice-list"></div>
+        <div class="dialog-actions">
+          <button type="button" class="btn subtle" id="btnCategoryChoiceCancel">Cancelar</button>
+        </div>
+      </div>
+    </dialog>
+
     <dialog class="dialog" id="syncDialog">
       <form method="dialog" class="dialog-card" id="syncForm">
         <div class="dialog-title">Actualizar notas</div>
@@ -226,8 +236,8 @@
       </form>
     </dialog>
 
-    <script defer src="./js/utils.js?v=0.6.8"></script>
-    <script defer src="./js/storage.js?v=0.6.8"></script>
-    <script defer src="./js/main.js?v=0.6.8"></script>
+    <script defer src="./js/utils.js?v=0.6.9"></script>
+    <script defer src="./js/storage.js?v=0.6.9"></script>
+    <script defer src="./js/main.js?v=0.6.9"></script>
   </body>
 </html>

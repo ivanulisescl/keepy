@@ -66,6 +66,7 @@ const el = {
   syncDialog: document.getElementById("syncDialog"),
   syncForm: document.getElementById("syncForm"),
   syncUrl: document.getElementById("syncUrl"),
+  categoryChoiceDialog: document.getElementById("categoryChoiceDialog"),
 
   toast: document.getElementById("toast"),
 };
@@ -74,6 +75,8 @@ const el = {
 let editingCategoryId = null;
 /** @type {string|null} Id de nota recién creada; para Cancelar = descartar */
 let noteJustCreatedId = null;
+/** @type {string|null} Categoría elegida al crear nota desde "Todas" */
+let categoryIdForNewNote = null;
 
 /** @type {{ data: any, selectedCategoryId: string|null, selectedNoteId: string|null, search: string, filterType: string }} */
 const state = {
@@ -253,18 +256,18 @@ function renderCategories() {
 }
 
 function renderNotesHeader() {
+  const hasCategories = state.data.categories.length > 0;
+  el.btnAddNote.disabled = !hasCategories;
+  el.btnAddNote.classList.remove("hidden");
+
   if (state.selectedCategoryId === ALL_CATEGORIES_ID) {
     el.notesTitle.textContent = "Todas";
     el.notesSubtitle.textContent = `${state.data.notes.length} notas en todas las categorías`;
-    el.btnAddNote.disabled = true;
-    el.btnAddNote.classList.add("hidden");
     return;
   }
   const cat = getCategoryById(state.selectedCategoryId);
   el.notesTitle.textContent = cat ? cat.name : "Notas";
   el.notesSubtitle.textContent = cat ? `${computeCategoryCount(cat.id)} notas` : "Selecciona una categoría";
-  el.btnAddNote.disabled = !cat;
-  el.btnAddNote.classList.remove("hidden");
 }
 
 function renderNotes() {
@@ -331,6 +334,9 @@ function renderNotes() {
 function renderEditor() {
   const note = state.selectedNoteId ? getNoteById(state.selectedNoteId) : null;
   el.btnDeleteNote.disabled = !note;
+  if (el.btnDeleteNote) {
+    el.btnDeleteNote.classList.toggle("hidden", !note || state.selectedNoteId === noteJustCreatedId);
+  }
   el.btnPinNote.disabled = !note;
   if (el.btnSaveNote) el.btnSaveNote.disabled = !note;
   if (el.btnCancelNote) el.btnCancelNote.disabled = !note;
@@ -377,7 +383,6 @@ function buildEditorHtml(note) {
           </select>
         </label>
       </div>
-      <div class="hint">Se guarda automáticamente en Local Storage.</div>
     </div>
   `;
 
@@ -403,7 +408,7 @@ function buildYoutubeEditor(note) {
   const safeOpenUrl =
     url && isValidUrl(url) && (url.startsWith("http:") || url.startsWith("https:"))
       ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="editor-link">${escapeHtml(url)}</a>`
-      : '<span class="hint">Escribe una URL válida y pincha sobre ella para abrir.</span>';
+      : "";
   return `
     <div class="editor-card">
       <div class="editor-grid single">
@@ -416,13 +421,9 @@ function buildYoutubeEditor(note) {
           <textarea id="edContent" placeholder="¿Qué quieres recordar?">${escapeHtml(note.content || "")}</textarea>
         </label>
       </div>
-      <div class="editor-open-link">${safeOpenUrl}</div>
+      ${safeOpenUrl ? `<div class="editor-open-link">${safeOpenUrl}</div>` : ""}
       <div class="preview-row">
-        ${
-          thumb
-            ? `<div class="preview"><img src="${escapeHtml(thumb)}" alt="Miniatura de YouTube" /><div class="preview-meta">Vista previa</div></div>`
-            : `<div class="hint">Pega un enlace válido de YouTube para ver una miniatura.</div>`
-        }
+        ${thumb ? `<div class="preview"><img src="${escapeHtml(thumb)}" alt="Miniatura de YouTube" /><div class="preview-meta">Vista previa</div></div>` : ""}
       </div>
     </div>
   `;
@@ -433,7 +434,7 @@ function buildLinkEditor(note) {
   const safeOpenUrl =
     url && isValidUrl(url) && (url.startsWith("http:") || url.startsWith("https:"))
       ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="editor-link">${escapeHtml(url)}</a>`
-      : '<span class="hint">Escribe una URL válida y pincha sobre ella para abrir.</span>';
+      : "";
   return `
     <div class="editor-card">
       <div class="editor-grid single">
@@ -446,8 +447,7 @@ function buildLinkEditor(note) {
           <textarea id="edContent" placeholder="Resumen / por qué lo guardas…">${escapeHtml(note.content || "")}</textarea>
         </label>
       </div>
-      <div class="editor-open-link">${safeOpenUrl}</div>
-      <div class="hint">${url ? `Dominio: ${escapeHtml(safeHostname(url))}` : "Tip: pega cualquier enlace (artículo, tienda, etc.)"}</div>
+      ${safeOpenUrl ? `<div class="editor-open-link">${safeOpenUrl}</div>` : ""}
     </div>
   `;
 }
@@ -465,7 +465,6 @@ function buildQuoteEditor(note) {
           <input id="edAuthor" maxlength="60" value="${escapeHtml(note.author || "")}" placeholder="Ej: Carl Sagan" />
         </label>
       </div>
-      <div class="hint">Vista previa:</div>
       <div class="preview">
         <div class="preview-meta">
           “${escapeHtml(clampText(note.content || "", 160))}”
@@ -485,7 +484,6 @@ function buildTextEditor(note) {
           <textarea id="edContent" placeholder="Escribe aquí tu nota larga / artículo…">${escapeHtml(note.content || "")}</textarea>
         </label>
       </div>
-      <div class="hint">Tip: usa títulos y saltos de línea para leer mejor.</div>
     </div>
   `;
 }
@@ -502,7 +500,6 @@ function buildListEditor(note) {
         <span>Elementos del listado</span>
         <ul contenteditable="true" id="edListContent" class="editor-list-input" data-placeholder="Añade elementos…">${lisHtml}</ul>
       </label>
-      <div class="hint">Enter para nueva línea.</div>
     </div>
   `;
 }
@@ -510,7 +507,6 @@ function buildListEditor(note) {
 function buildSimpleEditor(note) {
   return `
     <div class="editor-card">
-      <div class="hint">Nota simple: solo título. Puedes cambiar el tipo arriba si quieres añadir más.</div>
     </div>
   `;
 }
@@ -519,32 +515,26 @@ function buildImageEditor(note) {
   const src = note.image?.src || "";
   const alt = note.image?.alt || "";
   const previewHtml = src
-    ? `<div class="preview"><a href="${escapeHtml(src)}" target="_blank" rel="noopener noreferrer" class="preview-image-link" title="Abrir imagen completa"><img src="${escapeHtml(src)}" alt="${escapeHtml(alt || "Imagen guardada")}" /></a><div class="preview-meta">Vista previa (pincha para abrir completa)</div></div>`
-    : `<div class="hint">Pega una URL, usa el botón Pegar o sube un archivo para previsualizar.</div>`;
+    ? `<div class="preview"><a href="${escapeHtml(src)}" target="_blank" rel="noopener noreferrer" class="preview-image-link" title="Abrir imagen completa"><img src="${escapeHtml(src)}" alt="${escapeHtml(alt || "Imagen guardada")}" /></a><div class="preview-meta">Pincha para abrir completa</div></div>`
+    : "";
   return `
     <div class="editor-card">
       <div class="editor-grid">
         <label class="field">
-          <span>URL de imagen</span>
-          <input id="edImgUrl" value="${escapeHtml(src && !src.startsWith("data:") ? src : "")}" placeholder="https://..." />
-        </label>
-        <label class="field">
-          <span>Subir imagen (se guarda como DataURL)</span>
+          <span>Subir imagen</span>
           <input id="edImgFile" type="file" accept="image/*" />
         </label>
         <label class="field">
           <span>Portapapeles</span>
           <button type="button" class="btn subtle" id="btnPasteImage">Pegar imagen</button>
+          <span class="field-hint">Para capturas: Ctrl+V (o Cmd+V)</span>
         </label>
         <label class="field" style="grid-column: 1 / -1;">
           <span>Texto alternativo (opcional)</span>
-          <input id="edImgAlt" maxlength="120" value="${escapeHtml(alt)}" placeholder="Descripción breve de la imagen" />
+          <input id="edImgAlt" maxlength="120" value="${escapeHtml(alt)}" placeholder="Descripción breve" />
         </label>
       </div>
-      <div class="preview-row">
-        ${previewHtml}
-      </div>
-      <div class="hint">Aviso: Local Storage tiene límites. Para muchas imágenes grandes conviene usar URL o IndexedDB.</div>
+      ${previewHtml ? `<div class="preview-row">${previewHtml}</div>` : ""}
     </div>
   `;
 }
@@ -644,19 +634,6 @@ function wireEditorEvents(note) {
     });
   }
 
-  const edImgUrl = document.getElementById("edImgUrl");
-  if (edImgUrl) {
-    edImgUrl.addEventListener("input", () => {
-      const v = edImgUrl.value.trim();
-      note.image = note.image || { src: "", alt: "" };
-      note.image.src = v;
-      note.updatedAt = nowIso();
-      saveDebounced();
-      renderEditor();
-      renderNotes();
-    });
-  }
-
   const edImgAlt = document.getElementById("edImgAlt");
   if (edImgAlt) {
     edImgAlt.addEventListener("input", () => {
@@ -706,9 +683,9 @@ function wireEditorEvents(note) {
             }
           }
         }
-        showToast("No hay ninguna imagen en el portapapeles.");
+        showToast("No hay imagen en el portapapeles. Si acabas de hacer una captura, usa Ctrl+V aquí.");
       } catch (err) {
-        showToast("No se pudo leer el portapapeles. Prueba a pegar con Ctrl+V.");
+        showToast("Con capturas usa Ctrl+V (o Cmd+V) en esta página para pegar la imagen.");
       }
     });
   }
@@ -867,12 +844,34 @@ function openNoteTypeDialog() {
   setTimeout(() => el.noteTitleInput.focus(), 0);
 }
 
+function openCategoryChoiceDialog() {
+  const list = document.getElementById("categoryChoiceList");
+  if (!list) return;
+  list.innerHTML = "";
+  for (const c of state.data.categories) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn category-choice-btn";
+    const color = c.color || "#7C3AED";
+    btn.innerHTML = `<span class="category-choice-dot" style="background:${escapeHtml(color)}"></span>${escapeHtml(c.name)}`;
+    btn.addEventListener("click", () => {
+      categoryIdForNewNote = c.id;
+      el.categoryChoiceDialog.close();
+      openNoteTypeDialog();
+    });
+    list.appendChild(btn);
+  }
+  el.categoryChoiceDialog.showModal();
+}
+
 function createNote({ type, title }) {
-  if (!state.selectedCategoryId) return;
+  const targetCategoryId = categoryIdForNewNote || state.selectedCategoryId;
+  if (!targetCategoryId || targetCategoryId === ALL_CATEGORIES_ID) return;
+  categoryIdForNewNote = null;
   const ts = nowIso();
   const note = {
     id: uid("note"),
-    categoryId: state.selectedCategoryId,
+    categoryId: targetCategoryId,
     type,
     title: title?.trim() || "",
     content: "",
@@ -886,6 +885,7 @@ function createNote({ type, title }) {
 
   state.data.notes.push(note);
   setData(state.data);
+  state.selectedCategoryId = targetCategoryId;
   state.selectedNoteId = note.id;
   noteJustCreatedId = note.id;
   render();
@@ -1267,11 +1267,16 @@ el.categoryDialog.addEventListener("close", () => {
   }
 });
 
-el.btnAddNote.addEventListener("click", openNoteTypeDialog);
+el.btnAddNote.addEventListener("click", () => {
+  if (state.selectedCategoryId === ALL_CATEGORIES_ID) openCategoryChoiceDialog();
+  else openNoteTypeDialog();
+});
 el.noteTypeDialog.addEventListener("close", () => {
   if (el.noteTypeDialog.returnValue !== "ok") return;
   createNote({ type: el.noteTypeSelect.value, title: el.noteTitleInput.value });
 });
+const btnCategoryChoiceCancel = document.getElementById("btnCategoryChoiceCancel");
+if (btnCategoryChoiceCancel) btnCategoryChoiceCancel.addEventListener("click", () => el.categoryChoiceDialog.close());
 
 el.filterType.addEventListener("change", () => {
   state.filterType = el.filterType.value;
@@ -1300,14 +1305,9 @@ el.btnSaveNote.addEventListener("click", () => {
   goBackFromEditor();
   showToast("Guardado.");
 });
-el.btnCancelNote.addEventListener("click", async () => {
+el.btnCancelNote.addEventListener("click", () => {
   const note = state.selectedNoteId ? getNoteById(state.selectedNoteId) : null;
   if (note && state.selectedNoteId === noteJustCreatedId) {
-    el.confirmTitle.textContent = "Descartar nota";
-    el.confirmText.textContent = "¿Descartar esta nota recién creada? No se guardará.";
-    el.confirmDialog.showModal();
-    const result = await waitDialogResult(el.confirmDialog);
-    if (result !== "ok") return;
     state.data.notes = state.data.notes.filter((n) => n.id !== note.id);
     setData(state.data);
   }
